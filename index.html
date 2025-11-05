@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="google-site-verification" content="joviMFGn5XKoUB9uhEF6qB_pgENZeSq8-pypGukN7S0" />
+    
+    <!-- Preload hero image for faster loading -->
+    <link rel="preload" as="image" href="/hero-image.png" />
+    
+    <!-- Inject Supabase credentials for preload script -->
+    <script>
+      window.__SUPABASE_URL__ = '%VITE_SUPABASE_URL%';
+      window.__SUPABASE_ANON_KEY__ = '%VITE_SUPABASE_ANON_KEY%';
+    </script>
+    
+    <!-- Preload settings to prevent branding flash -->
+    <script src="/preload-settings.js"></script>
+    
+    <!-- Title and meta tags will be set by preload script -->
+    <title>Loading...</title>
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+
+    <!-- Open Graph / Facebook - Will be updated by preload script -->
+    <meta property="og:title" content="" />
+    <meta property="og:description" content="" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://heritagebk.org/" />
+    <meta property="og:image" content="https://heritagebk.org/hero-image.png" />
+    <meta property="og:image:width" content="1920" />
+    <meta property="og:image:height" content="1080" />
+
+    <!-- Twitter - Will be updated by preload script -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="" />
+    <meta name="twitter:description" content="" />
+    <meta name="twitter:image" content="https://heritagebk.org/hero-image.png" />
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,291 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Professional Banking Design System
+   Color Philosophy: Professional, Clean, Corporate
+   No gradients - solid colors with depth through shadows
+   Inter font family for modern, professional look
+*/
+
+@layer base {
+  :root {
+    /* Professional Banking Colors (HSL) */
+    --background: 0 0% 96%;
+    --foreground: 220 39% 11%;
+
+    /* Card System - Clean white cards with subtle shadows */
+    --card: 0 0% 100%;
+    --card-foreground: 220 39% 11%;
+
+    /* Popover & Dropdowns */
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 39% 11%;
+
+    /* Primary - Professional Blue (#0052CC) */
+    --primary: 216 100% 40%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 216 100% 35%;
+
+    /* Secondary - Action Blue (#2563EB) */
+    --secondary: 221 83% 53%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Muted - Subtle backgrounds */
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    /* Accent - Success Green (#059669) */
+    --accent: 160 84% 39%;
+    --accent-foreground: 0 0% 100%;
+    --accent-hover: 160 84% 34%;
+
+    /* Destructive - Error Red (#DC2626) */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Warning - Alert Orange (#D97706) */
+    --warning: 32 95% 44%;
+    --warning-foreground: 0 0% 100%;
+
+    /* Borders & Inputs */
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 216 100% 40%;
+
+    /* Border Radius - Subtle rounding */
+    --radius: 0.5rem;
+
+    /* Minimal Shadow System - Subtle depth */
+    --shadow-sm: 0 1px 1px 0 rgb(0 0 0 / 0.02);
+    --shadow-base: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+    --shadow-md: 0 2px 3px 0 rgb(0 0 0 / 0.04);
+    --shadow-lg: 0 2px 4px 0 rgb(0 0 0 / 0.05);
+    --shadow-xl: 0 3px 6px 0 rgb(0 0 0 / 0.06);
+    
+    /* Card specific shadows - Very subtle */
+    --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+    --shadow-card-hover: 0 2px 4px 0 rgb(0 0 0 / 0.05);
+
+    /* Spacing System (4px base) */
+    --spacing-xs: 0.25rem;  /* 4px */
+    --spacing-sm: 0.5rem;   /* 8px */
+    --spacing-md: 1rem;     /* 16px */
+    --spacing-lg: 1.5rem;   /* 24px */
+    --spacing-xl: 2rem;     /* 32px */
+    --spacing-2xl: 3rem;    /* 48px */
+
+    /* Sidebar */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 220 39% 11%;
+    --sidebar-primary: 216 100% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 220 39% 11%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 216 100% 40%;
+  }
+
+  .dark {
+    --background: 220 39% 11%;
+    --foreground: 0 0% 98%;
+
+    --card: 220 39% 13%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 220 39% 13%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 216 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 216 100% 45%;
+
+    --secondary: 221 83% 58%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 220 30% 18%;
+    --muted-foreground: 220 9% 65%;
+
+    --accent: 160 84% 44%;
+    --accent-foreground: 0 0% 100%;
+    --accent-hover: 160 84% 39%;
+
+    --destructive: 0 72% 56%;
+    --destructive-foreground: 0 0% 100%;
+
+    --warning: 32 95% 49%;
+    --warning-foreground: 0 0% 100%;
+
+    --border: 220 30% 25%;
+    --input: 220 30% 25%;
+    --ring: 216 100% 50%;
+
+    /* Dark mode shadows - Very subtle */
+    --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.15);
+    --shadow-card-hover: 0 2px 4px 0 rgb(0 0 0 / 0.20);
+
+    --sidebar-background: 220 39% 11%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 216 100% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 30% 18%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 220 30% 25%;
+    --sidebar-ring: 216 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  /* Professional Typography */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  h1 {
+    @apply text-3xl font-bold;
+  }
+
+  h2 {
+    @apply text-2xl font-semibold;
+  }
+
+  h3 {
+    @apply text-xl font-semibold;
+  }
+
+  /* Tabular numbers for amounts */
+  .font-mono,
+  .tabular-nums {
+    font-feature-settings: 'tnum';
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Professional Component Styles */
+@layer components {
+  /* Professional Card Styles */
+  .card-elevated {
+    box-shadow: var(--shadow-card);
+    transition: box-shadow 0.2s ease;
+  }
+
+  .card-elevated:hover {
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  /* Professional Button States */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:opacity-90 transition-opacity;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:opacity-90 transition-opacity;
+  }
+
+  /* Status Badges */
+  .badge-success {
+    @apply bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200;
+  }
+
+  .badge-warning {
+    @apply bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200;
+  }
+
+  .badge-error {
+    @apply bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200;
+  }
+
+  .badge-info {
+    @apply bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200;
+  }
+
+  /* Professional Input Focus */
+  .input-focus {
+    @apply focus:ring-2 focus:ring-primary focus:border-primary transition-all;
+  }
+}
+
+@layer utilities {
+  /* Shadow Utilities */
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  .shadow-card-hover {
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  /* Spacing Utilities */
+  .section-spacing {
+    @apply py-6 md:py-8;
+  }
+
+  .card-spacing {
+    @apply p-6;
+  }
+
+  /* Professional Transitions */
+  .transition-professional {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* Professional Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

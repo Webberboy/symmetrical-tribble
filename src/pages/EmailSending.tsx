@@ -567,24 +567,6 @@ const EmailSending = () => {
             </Card>
           </div>
         </div>
-
-        {/* Tips Card */}
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="text-lg">Email Design Tips</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-              <li>• Use inline CSS styles instead of external stylesheets for maximum compatibility</li>
-              <li>• Use table-based layouts for consistent rendering across email clients</li>
-              <li>• Keep email width around 600px for optimal viewing on all devices</li>
-              <li>• Test your emails across different email clients (Gmail, Outlook, etc.)</li>
-              <li>• Always include alt text for images</li>
-              <li>• Avoid using JavaScript - it's blocked by most email clients</li>
-              <li>• Use web-safe fonts like Arial, Helvetica, Times New Roman, Georgia</li>
-            </ul>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

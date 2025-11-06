@@ -18,66 +18,7 @@ const EmailSending = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  // Check admin authentication on mount
-  useEffect(() => {
-    checkAdminAccess();
-  }, []);
-
-  const checkAdminAccess = async () => {
-    try {
-      // Check if user is logged in
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        toast({
-          title: 'Access Denied',
-          description: 'Please log in as admin to access this page',
-          variant: 'destructive',
-        });
-        navigate('/xk9p2vnz7q');
-        return;
-      }
-
-      // Check if user has admin role (you can customize this check)
-      const userEmail = session.user.email;
-      const adminEmails = ['admin@heritagebk.org']; // Add your admin emails here
-      
-      if (!adminEmails.includes(userEmail || '')) {
-        toast({
-          title: 'Access Denied',
-          description: 'You do not have permission to access this page',
-          variant: 'destructive',
-        });
-        navigate('/dashboard');
-        return;
-      }
-
-      setIsAdmin(true);
-    } catch (error) {
-      console.error('Auth check error:', error);
-      navigate('/xk9p2vnz7q');
-    } finally {
-      setIsCheckingAuth(false);
-    }
-  };
-
-  // Show loading state while checking authentication
-  if (isCheckingAuth) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Checking authentication...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAdmin) {
-    return null;
-  }
-
-  // Form state
+  // Form state - MUST be declared before any conditional returns
   const [formData, setFormData] = useState({
     fromEmail: 'admin@heritagebk.org',
     fromName: 'Heritage Bank',
@@ -151,6 +92,65 @@ const EmailSending = () => {
   </body>
 </html>`,
   });
+
+  // Check admin authentication on mount
+  useEffect(() => {
+    checkAdminAccess();
+  }, []);
+
+  const checkAdminAccess = async () => {
+    try {
+      // Check if user is logged in
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast({
+          title: 'Access Denied',
+          description: 'Please log in as admin to access this page',
+          variant: 'destructive',
+        });
+        navigate('/xk9p2vnz7q');
+        return;
+      }
+
+      // Check if user has admin role (you can customize this check)
+      const userEmail = session.user.email;
+      const adminEmails = ['admin@heritagebk.org']; // Add your admin emails here
+      
+      if (!adminEmails.includes(userEmail || '')) {
+        toast({
+          title: 'Access Denied',
+          description: 'You do not have permission to access this page',
+          variant: 'destructive',
+        });
+        navigate('/dashboard');
+        return;
+      }
+
+      setIsAdmin(true);
+    } catch (error) {
+      console.error('Auth check error:', error);
+      navigate('/xk9p2vnz7q');
+    } finally {
+      setIsCheckingAuth(false);
+    }
+  };
+
+  // Show loading state while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return null;
+  }
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));

@@ -259,7 +259,7 @@ const Transactions = () => {
       }
 
       // If it's a wire transfer, also update wire_transfers table
-      if (selectedTransaction.description?.toLowerCase().includes('wire transfer')) {
+      if (selectedTransaction.description?.toLowerCase().includes('wire transfer') && selectedTransaction.id) {
         const { error: wireError } = await supabase
           .from('wire_transfers')
           .update({ 
@@ -329,7 +329,7 @@ const Transactions = () => {
       }
 
       // If it's a wire transfer, also update wire_transfers table
-      if (selectedTransaction.description?.toLowerCase().includes('wire transfer')) {
+      if (selectedTransaction.description?.toLowerCase().includes('wire transfer') && selectedTransaction.id) {
         const { error: wireError } = await supabase
           .from('wire_transfers')
           .update({ 
@@ -337,8 +337,6 @@ const Transactions = () => {
             updated_at: new Date().toISOString()
           })
           .eq('transaction_id', selectedTransaction.id);
-
-        if (wireError) console.error('Wire transfer update error:', wireError);
       }
 
       toast.success('Transaction declined and funds restored successfully! 💰');

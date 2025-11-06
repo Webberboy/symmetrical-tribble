@@ -42,6 +42,36 @@ const EMAIL_CONFIG = {
 };
 
 /**
+ * Send custom HTML email (for admin use)
+ * Note: This function calls Resend from the browser, which will cause CORS errors.
+ * For production, this should be moved to a backend/serverless function.
+ */
+export const sendCustomEmail = async (
+  fromName: string,
+  fromEmail: string,
+  toEmail: string,
+  subject: string,
+  htmlContent: string
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const { data, error } = await resend.emails.send({
+      from: `${fromName} <${fromEmail}>`,
+      to: toEmail,
+      subject: subject,
+      html: htmlContent,
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Failed to send email' };
+  }
+};
+
+/**
  * Send email verification link (alternative to Supabase emails)
  */
 export const sendVerificationEmail = async (

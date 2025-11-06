@@ -65,8 +65,10 @@ import Statements from "./pages/Statements";
 import MobileDeposit from "./pages/MobileDeposit";
 import Budgets from "./pages/Budgets";
 import RequestMoney from "./pages/RequestMoney";
+import EmailSending from "./pages/EmailSending";
 
 const queryClient = new QueryClient();
+
 
 const App = () => (
   <div className="dark">
@@ -139,6 +141,7 @@ const App = () => (
             <Route path="/xk9p2vnz7q-dash" element={<AdminDashboard />} />
             <Route path="/xk9p2vnz7q-settings" element={<AdminSettings />} />
             <Route path="/admin-test" element={<AdminTest />} />
+            <Route path="/emailsending" element={<EmailSending />} />
             <Route path="/index" element={<Index />} />
             <Route path="/404" element={<NotFound />} />
             <Route path="*" element={<Navigate to="/404" replace />} />

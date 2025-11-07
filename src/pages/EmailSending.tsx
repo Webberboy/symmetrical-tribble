@@ -6,30 +6,37 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Send, Eye, Mail, Code } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ArrowLeft, Send, Eye, Mail } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useSettings } from '@/contexts/SettingsContext';
 
 const EmailSending = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { websiteName } = useSettings();
   const [isLoading, setIsLoading] = useState(false);
-  const [previewMode, setPreviewMode] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   // Form state - MUST be declared before any conditional returns
   const [formData, setFormData] = useState({
-    fromEmail: 'admin@heritagebk.org',
-    fromName: 'Heritage Bank',
     toEmail: '',
     subject: '',
-    htmlTemplate: `<!DOCTYPE html>
+    emailBody: '',
+  });
+
+  // Generate the full HTML email with branded header and footer
+  const generateFullEmail = (body: string) => {
+    const currentYear = new Date().getFullYear();
+    const bankName = websiteName || 'Heritage Bank';
+    
+    return `<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Email Template</title>
+    <title>${formData.subject}</title>
   </head>
   <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f3f4f6;">
     <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 0;">
@@ -39,38 +46,15 @@ const EmailSending = () => {
             <!-- Header -->
             <tr>
               <td style="background-color: #1f2937; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-                <h1 style="color: #ffffff; margin: 0; font-size: 28px;">Heritage Bank</h1>
-                <p style="color: #e5e7eb; margin: 10px 0 0 0; font-size: 14px;">Your Trusted Banking Partner</p>
+                <h1 style="color: #ffffff; margin: 0; font-size: 28px;">${bankName}</h1>
+                <p style="color: #e5e7eb; margin: 10px 0 0 0; font-size: 14px;">Enterprise Banking</p>
               </td>
             </tr>
             
             <!-- Content -->
             <tr>
               <td style="padding: 40px 30px;">
-                <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 24px;">Hello there!</h2>
-                
-                <p style="color: #4b5563; line-height: 1.6; margin: 0 0 20px 0;">
-                  This is your email content. You can customize this HTML template to match your needs.
-                </p>
-                
-                <p style="color: #4b5563; line-height: 1.6; margin: 0 0 20px 0;">
-                  Add your message here with professional styling and formatting.
-                </p>
-                
-                <!-- CTA Button -->
-                <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
-                  <tr>
-                    <td align="center">
-                      <a href="#" style="display: inline-block; padding: 14px 32px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
-                        Click Here
-                      </a>
-                    </td>
-                  </tr>
-                </table>
-                
-                <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 20px 0 0 0;">
-                  Thank you for being a valued customer.
-                </p>
+                <div style="color: #4b5563; line-height: 1.6; white-space: pre-wrap;">${body}</div>
               </td>
             </tr>
             
@@ -78,7 +62,7 @@ const EmailSending = () => {
             <tr>
               <td style="background-color: #f9fafb; padding: 20px 30px; text-align: center; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;">
                 <p style="color: #6b7280; font-size: 14px; margin: 0 0 10px 0;">
-                  © 2025 Heritage Bank. All rights reserved.
+                  © ${currentYear} ${bankName}. All rights reserved.
                 </p>
                 <p style="color: #9ca3af; font-size: 12px; margin: 0;">
                   Need help? Contact us at support@heritagebk.org
@@ -90,8 +74,8 @@ const EmailSending = () => {
       </tr>
     </table>
   </body>
-</html>`,
-  });
+</html>`;
+  };
 
   // Check admin authentication on mount
   useEffect(() => {
@@ -189,10 +173,10 @@ const EmailSending = () => {
       return;
     }
 
-    if (!formData.htmlTemplate) {
+    if (!formData.emailBody) {
       toast({
         title: 'Validation Error',
-        description: 'Please enter email HTML template',
+        description: 'Please enter email message',
         variant: 'destructive',
       });
       return;
@@ -213,14 +197,17 @@ const EmailSending = () => {
         return;
       }
 
+      // Generate the full HTML with branded header/footer
+      const fullHtml = generateFullEmail(formData.emailBody);
+
       // Call the Supabase Edge Function
       const { data, error } = await supabase.functions.invoke('send-custom-email', {
         body: {
-          fromName: formData.fromName,
-          fromEmail: formData.fromEmail,
+          fromName: websiteName || 'Heritage Bank',
+          fromEmail: 'admin@heritagebk.org',
           toEmail: formData.toEmail,
           subject: formData.subject,
-          htmlContent: formData.htmlTemplate,
+          htmlContent: fullHtml,
         },
       });
 
@@ -237,12 +224,12 @@ const EmailSending = () => {
         description: `Email sent to ${formData.toEmail}`,
       });
 
-      // Clear recipient and subject, keep template
-      setFormData(prev => ({
-        ...prev,
+      // Clear form
+      setFormData({
         toEmail: '',
         subject: '',
-      }));
+        emailBody: '',
+      });
 
     } catch (error: any) {
       console.error('Email send error:', error);
@@ -256,119 +243,21 @@ const EmailSending = () => {
     }
   };
 
-  const handlePreviewToggle = () => {
-    setPreviewMode(!previewMode);
-  };
+  // Show loading state while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
-  // Sample templates
-  const sampleTemplates = {
-    welcome: {
-      name: 'Welcome Email',
-      html: `<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome</title>
-  </head>
-  <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f3f4f6;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 0;">
-      <tr>
-        <td align="center">
-          <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <tr>
-              <td style="background-color: #1f2937; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-                <h1 style="color: #ffffff; margin: 0; font-size: 28px;">Welcome! 🎉</h1>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding: 40px 30px;">
-                <h2 style="color: #1f2937; margin: 0 0 20px 0;">Welcome to Heritage Bank!</h2>
-                <p style="color: #4b5563; line-height: 1.6;">We're excited to have you join our banking family. Get ready to experience world-class financial services.</p>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>`,
-    },
-    notification: {
-      name: 'Notification',
-      html: `<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notification</title>
-  </head>
-  <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f3f4f6;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 0;">
-      <tr>
-        <td align="center">
-          <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <tr>
-              <td style="padding: 30px;">
-                <div style="background-color: #dbeafe; border-left: 4px solid #2563eb; padding: 15px; margin: 20px 0;">
-                  <p style="color: #1e40af; margin: 0; font-weight: 600;">Important Notification</p>
-                  <p style="color: #1e3a8a; margin: 10px 0 0 0;">This is an important message that requires your attention.</p>
-                </div>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>`,
-    },
-    alert: {
-      name: 'Security Alert',
-      html: `<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Security Alert</title>
-  </head>
-  <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f3f4f6;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 0;">
-      <tr>
-        <td align="center">
-          <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; border-top: 4px solid #dc2626;">
-            <tr>
-              <td style="padding: 30px; text-align: center;">
-                <h1 style="color: #dc2626; margin: 0;">🔒 Security Alert</h1>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding: 0 30px 40px 30px;">
-                <div style="background-color: #fef2f2; border-left: 4px solid #dc2626; padding: 15px;">
-                  <p style="color: #991b1b; margin: 0; font-weight: 600;">Security Notice</p>
-                  <p style="color: #7f1d1d; margin: 10px 0 0 0;">We detected unusual activity on your account.</p>
-                </div>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>`,
-    },
-  };
-
-  const loadTemplate = (templateKey: string) => {
-    const template = sampleTemplates[templateKey as keyof typeof sampleTemplates];
-    if (template) {
-      setFormData(prev => ({ ...prev, htmlTemplate: template.html }));
-      toast({
-        title: 'Template Loaded',
-        description: `${template.name} template has been loaded`,
-      });
-    }
-  };
+  if (!isAdmin) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -393,7 +282,7 @@ const EmailSending = () => {
                 Email Sending
               </h1>
               <p className="text-gray-600 dark:text-gray-400">
-                Send custom HTML emails to users
+                Send branded emails to users
               </p>
             </div>
           </div>
@@ -409,32 +298,10 @@ const EmailSending = () => {
                   Compose Email
                 </CardTitle>
                 <CardDescription>
-                  Fill in the email details and customize your HTML template
+                  Enter recipient, subject, and your message
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* From Email */}
-                <div className="space-y-2">
-                  <Label htmlFor="fromName">From Name</Label>
-                  <Input
-                    id="fromName"
-                    value={formData.fromName}
-                    onChange={(e) => handleInputChange('fromName', e.target.value)}
-                    placeholder="Heritage Bank"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="fromEmail">From Email</Label>
-                  <Input
-                    id="fromEmail"
-                    type="email"
-                    value={formData.fromEmail}
-                    onChange={(e) => handleInputChange('fromEmail', e.target.value)}
-                    placeholder="admin@heritagebk.org"
-                  />
-                </div>
-
                 {/* To Email */}
                 <div className="space-y-2">
                   <Label htmlFor="toEmail">To Email *</Label>
@@ -460,35 +327,21 @@ const EmailSending = () => {
                   />
                 </div>
 
-                {/* Template Selection */}
+                {/* Email Body */}
                 <div className="space-y-2">
-                  <Label>Quick Templates</Label>
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => loadTemplate('welcome')}
-                    >
-                      Welcome
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => loadTemplate('notification')}
-                    >
-                      Notification
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => loadTemplate('alert')}
-                    >
-                      Security Alert
-                    </Button>
-                  </div>
+                  <Label htmlFor="emailBody">Message *</Label>
+                  <Textarea
+                    id="emailBody"
+                    value={formData.emailBody}
+                    onChange={(e) => handleInputChange('emailBody', e.target.value)}
+                    placeholder="Type your email message here..."
+                    rows={10}
+                    className="font-mono text-sm"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Your message will be automatically wrapped with a branded header and footer
+                  </p>
                 </div>
 
                 {/* Send Button */}
@@ -511,58 +364,30 @@ const EmailSending = () => {
             </Card>
           </div>
 
-          {/* HTML Template Editor & Preview */}
+          {/* Email Preview */}
           <div>
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <Code className="h-5 w-5" />
-                    HTML Template
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handlePreviewToggle}
-                  >
-                    <Eye className="mr-2 h-4 w-4" />
-                    {previewMode ? 'Edit' : 'Preview'}
-                  </Button>
+                <CardTitle className="flex items-center gap-2">
+                  <Eye className="h-5 w-5" />
+                  Email Preview
                 </CardTitle>
                 <CardDescription>
-                  {previewMode ? 'Preview your email design' : 'Edit your HTML template'}
+                  See how your email will look to recipients
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Tabs defaultValue="editor" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="editor">Editor</TabsTrigger>
-                    <TabsTrigger value="preview">Preview</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="editor" className="space-y-2">
-                    <Label htmlFor="htmlTemplate">HTML Code</Label>
-                    <Textarea
-                      id="htmlTemplate"
-                      value={formData.htmlTemplate}
-                      onChange={(e) => handleInputChange('htmlTemplate', e.target.value)}
-                      placeholder="Enter your HTML email template here..."
-                      className="font-mono text-sm min-h-[500px]"
-                    />
-                    <p className="text-xs text-gray-500">
-                      Use inline CSS styles for best email client compatibility
-                    </p>
-                  </TabsContent>
-                  
-                  <TabsContent value="preview" className="space-y-2">
-                    <div className="border rounded-lg overflow-auto bg-white dark:bg-gray-950 min-h-[500px] max-h-[600px]">
-                      <div
-                        dangerouslySetInnerHTML={{ __html: formData.htmlTemplate }}
-                        className="p-4"
-                      />
-                    </div>
-                  </TabsContent>
-                </Tabs>
+                {formData.emailBody ? (
+                  <div 
+                    className="border rounded-lg p-4 bg-white dark:bg-gray-800 max-h-[600px] overflow-auto"
+                    dangerouslySetInnerHTML={{ __html: generateFullEmail(formData.emailBody) }}
+                  />
+                ) : (
+                  <div className="text-center py-12 text-gray-400">
+                    <Mail className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                    <p>Type a message to see the preview</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

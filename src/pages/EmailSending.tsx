@@ -6,9 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Send, Eye, Mail } from 'lucide-react';
+import { ArrowLeft, Send, Eye, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useSettings } from '@/contexts/SettingsContext';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const EmailSending = () => {
   const navigate = useNavigate();
@@ -18,10 +19,12 @@ const EmailSending = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [allUsers, setAllUsers] = useState<Array<{ id: string; email: string; full_name: string }>>([]);
+  const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
+  const [showEmailDropdown, setShowEmailDropdown] = useState(false);
 
   // Form state - MUST be declared before any conditional returns
   const [formData, setFormData] = useState({
-    toEmail: '',
     subject: '',
     emailBody: '',
   });
@@ -112,12 +115,54 @@ const EmailSending = () => {
       }
 
       setIsAdmin(true);
+      // Load all users once admin is verified
+      await loadAllUsers();
     } catch (error) {
       console.error('Auth check error:', error);
       navigate('/xk9p2vnz7q');
     } finally {
       setIsCheckingAuth(false);
     }
+  };
+
+  const loadAllUsers = async () => {
+    try {
+      const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select('id, email, full_name')
+        .order('full_name', { ascending: true });
+
+      if (error) throw error;
+      
+      setAllUsers(profiles || []);
+    } catch (error: any) {
+      console.error('Error loading users:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load user list',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleSelectAllEmails = () => {
+    if (selectedEmails.length === allUsers.length) {
+      // Deselect all
+      setSelectedEmails([]);
+    } else {
+      // Select all
+      setSelectedEmails(allUsers.map(user => user.email));
+    }
+  };
+
+  const handleToggleEmail = (email: string) => {
+    setSelectedEmails(prev => {
+      if (prev.includes(email)) {
+        return prev.filter(e => e !== email);
+      } else {
+        return [...prev, email];
+      }
+    });
   };
 
   // Show loading state while checking authentication
@@ -140,25 +185,12 @@ const EmailSending = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const validateEmail = (email: string) => {
-    return email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
-  };
-
   const handleSendEmail = async () => {
     // Validation
-    if (!formData.toEmail) {
+    if (selectedEmails.length === 0) {
       toast({
         title: 'Validation Error',
-        description: 'Please enter recipient email address',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!validateEmail(formData.toEmail)) {
-      toast({
-        title: 'Validation Error',
-        description: 'Please enter a valid email address',
+        description: 'Please select at least one recipient',
         variant: 'destructive',
       });
       return;
@@ -200,36 +232,55 @@ const EmailSending = () => {
       // Generate the full HTML with branded header/footer
       const fullHtml = generateFullEmail(formData.emailBody);
 
-      // Call the Supabase Edge Function
-      const { data, error } = await supabase.functions.invoke('send-custom-email', {
-        body: {
-          fromName: websiteName || 'Heritage Bank',
-          fromEmail: 'admin@heritagebk.org',
-          toEmail: formData.toEmail,
-          subject: formData.subject,
-          htmlContent: fullHtml,
-        },
-      });
+      // Send email to each selected recipient
+      let successCount = 0;
+      let failCount = 0;
 
-      if (error) {
-        throw new Error(error.message);
+      for (const email of selectedEmails) {
+        try {
+          const { data, error } = await supabase.functions.invoke('send-custom-email', {
+            body: {
+              fromName: websiteName || 'Heritage Bank',
+              fromEmail: 'admin@heritagebk.org',
+              toEmail: email,
+              subject: formData.subject,
+              htmlContent: fullHtml,
+            },
+          });
+
+          if (error || !data.success) {
+            failCount++;
+          } else {
+            successCount++;
+          }
+        } catch (error) {
+          failCount++;
+        }
       }
 
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to send email');
+      if (successCount > 0) {
+        toast({
+          title: 'Emails Sent! ✉️',
+          description: `Successfully sent to ${successCount} recipient(s)${failCount > 0 ? `, ${failCount} failed` : ''}`,
+        });
       }
 
-      toast({
-        title: 'Email Sent Successfully! ✉️',
-        description: `Email sent to ${formData.toEmail}`,
-      });
+      if (failCount > 0 && successCount === 0) {
+        toast({
+          title: 'Failed to Send Emails',
+          description: `All ${failCount} emails failed to send`,
+          variant: 'destructive',
+        });
+      }
 
-      // Clear form
-      setFormData({
-        toEmail: '',
-        subject: '',
-        emailBody: '',
-      });
+      // Clear form on success
+      if (successCount > 0) {
+        setFormData({
+          subject: '',
+          emailBody: '',
+        });
+        setSelectedEmails([]);
+      }
 
     } catch (error: any) {
       console.error('Email send error:', error);
@@ -260,33 +311,27 @@ const EmailSending = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Header */}
-        <div className="mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/xk9p2vnz7q-dash')}
-            className="mb-4"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Admin Dashboard
-          </Button>
-          
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-              <Mail className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Email Sending
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400">
-                Send branded emails to users
-              </p>
+    <div className="min-h-screen bg-gray-900">
+      <header className="bg-gray-800 border-b border-gray-700">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
+              <Button
+                variant="ghost"
+                onClick={() => navigate('/xk9p2vnz7q-dash')}
+                className="text-white hover:bg-gray-700 text-sm sm:text-base px-2 sm:px-4"
+              >
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Back to Admin</span>
+                <span className="sm:hidden">Back</span>
+              </Button>
+              <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">Send Email</h1>
             </div>
           </div>
         </div>
+      </header>
+
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Email Composer */}
@@ -302,17 +347,68 @@ const EmailSending = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* To Email */}
+                {/* Email Recipients Selector */}
                 <div className="space-y-2">
-                  <Label htmlFor="toEmail">To Email *</Label>
-                  <Input
-                    id="toEmail"
-                    type="email"
-                    value={formData.toEmail}
-                    onChange={(e) => handleInputChange('toEmail', e.target.value)}
-                    placeholder="recipient@example.com"
-                    required
-                  />
+                  <Label>Recipients *</Label>
+                  <div className="relative">
+                    <div 
+                      onClick={() => setShowEmailDropdown(!showEmailDropdown)}
+                      className="min-h-[40px] px-3 py-2 border border-gray-600 rounded-md bg-gray-700 text-white cursor-pointer flex flex-wrap gap-2 items-center"
+                    >
+                      {selectedEmails.length === 0 ? (
+                        <span className="text-gray-400">Select recipients...</span>
+                      ) : (
+                        <span className="text-sm">
+                          {selectedEmails.length} recipient{selectedEmails.length !== 1 ? 's' : ''} selected
+                        </span>
+                      )}
+                    </div>
+                    
+                    {showEmailDropdown && (
+                      <div className="absolute z-10 w-full mt-1 bg-gray-700 border border-gray-600 rounded-md shadow-lg max-h-64 overflow-y-auto">
+                        {/* Select All Option */}
+                        <div 
+                          className="px-3 py-2 hover:bg-gray-600 cursor-pointer flex items-center gap-2 border-b border-gray-600 bg-gray-800 sticky top-0"
+                          onClick={handleSelectAllEmails}
+                        >
+                          <Checkbox 
+                            checked={selectedEmails.length === allUsers.length && allUsers.length > 0}
+                            onCheckedChange={handleSelectAllEmails}
+                          />
+                          <span className="font-semibold text-white">
+                            {selectedEmails.length === allUsers.length ? 'Deselect All' : 'Select All'} ({allUsers.length})
+                          </span>
+                        </div>
+
+                        {/* Individual User Options */}
+                        {allUsers.map((user) => (
+                          <div 
+                            key={user.id}
+                            className="px-3 py-2 hover:bg-gray-600 cursor-pointer flex items-center gap-2"
+                            onClick={() => handleToggleEmail(user.email)}
+                          >
+                            <Checkbox 
+                              checked={selectedEmails.includes(user.email)}
+                              onCheckedChange={() => handleToggleEmail(user.email)}
+                            />
+                            <div className="flex-1">
+                              <div className="text-sm text-white">{user.full_name || 'N/A'}</div>
+                              <div className="text-xs text-gray-400">{user.email}</div>
+                            </div>
+                          </div>
+                        ))}
+
+                        {allUsers.length === 0 && (
+                          <div className="px-3 py-4 text-center text-gray-400">
+                            No users available
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-400">
+                    Click to select multiple recipients or use "Select All"
+                  </p>
                 </div>
 
                 {/* Subject */}
@@ -340,7 +436,7 @@ const EmailSending = () => {
                     required
                   />
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Your message will be automatically wrapped with a branded header and footer
+                    Enter the email message content
                   </p>
                 </div>
 
@@ -384,7 +480,7 @@ const EmailSending = () => {
                   />
                 ) : (
                   <div className="text-center py-12 text-gray-400">
-                    <Mail className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                    <Eye className="h-12 w-12 mx-auto mb-3 opacity-50" />
                     <p>Type a message to see the preview</p>
                   </div>
                 )}

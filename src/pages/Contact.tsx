@@ -94,7 +94,7 @@ const Contact = () => {
                   </>
                 ) : (
                   <>
-                    <p className="text-gray-600 text-sm mb-2">support@example.com</p>
+                    <p className="text-gray-600 text-sm mb-2">support@heritagebk.org</p>
                     <p className="text-gray-400 text-xs">We reply within 24 hours</p>
                   </>
                 )}

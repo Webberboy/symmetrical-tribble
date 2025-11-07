@@ -58,6 +58,7 @@ const AccountBalances: React.FC = () => {
         .order('account_type', { ascending: true });
 
       if (error) {
+        console.error('Error fetching accounts:', error);
         toast({
           title: "Error",
           description: "Failed to load account information",
@@ -82,6 +83,7 @@ const AccountBalances: React.FC = () => {
         .single();
 
       if (profileError) {
+        console.error('Error fetching profile:', profileError);
       }
 
       // Map accounts data to component format
@@ -101,6 +103,7 @@ const AccountBalances: React.FC = () => {
 
       setAccounts(userAccounts);
     } catch (error) {
+      console.error('Error:', error);
       toast({
         title: "Error",
         description: "Failed to load accounts",

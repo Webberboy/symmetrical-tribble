@@ -39,7 +39,7 @@ You'll need FREE accounts for these services:
 | **Supabase** | Database & Authentication | Free tier | https://supabase.com |
 | **Resend** | Email delivery | 100 emails/day free | https://resend.com |
 | **Vercel** | Application hosting | Free tier | https://vercel.com |
-| **Domain** | Your website address | ~$10-15/year | Any registrar |
+| **Domain** | Your website address | ~$10-15/year | Name Cheap |
 
 ---
 
@@ -52,7 +52,7 @@ You'll need FREE accounts for these services:
 3. Fill in project details:
    - **Name**: `MyBank` (or your bank name)
    - **Database Password**: Create a strong password (**SAVE THIS!**)
-   - **Region**: Choose closest to your users
+   - **Region**: Choose any
 4. Click **"Create new project"**
 5. ⏳ Wait 2-3 minutes for setup to complete
 

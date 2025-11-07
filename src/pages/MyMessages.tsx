@@ -53,23 +53,20 @@ const MyMessages = () => {
   useEffect(() => {
     const initializePage = async () => {
       try {
-        setLoading(true);
         const userData = localStorage.getItem("user");
-        if (!userData) {
+        if (userData) {
+          const parsedUser = JSON.parse(userData);
+          setUser(parsedUser);
+          await Promise.all([
+            fetchUserData(),
+            loadMessages(parsedUser.id)
+          ]);
+        } else {
           navigate("/auth");
-          return;
         }
-
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
-        
-        // Fetch user profile and messages in parallel
-        await Promise.all([
-          fetchUserData(),
-          loadMessages(parsedUser.id)
-        ]);
       } catch (error) {
-        toast.error("Failed to load page");
+        console.error("Error initializing page:", error);
+        navigate("/auth");
       } finally {
         setLoading(false);
       }
@@ -80,21 +77,17 @@ const MyMessages = () => {
 
   const fetchUserData = async () => {
     try {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
-      if (authError || !user) {
-        throw new Error('Not authenticated');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate('/signin');
+        return;
       }
 
-      const { data: profile, error: profileError } = await supabase
+      const { data: profile } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
-
-      if (profileError) {
-        throw profileError;
-      }
 
       if (profile) {
         setUserData({
@@ -104,7 +97,7 @@ const MyMessages = () => {
         });
       }
     } catch (error) {
-      throw error; // Re-throw to be caught by initializePage
+      console.error('Error fetching user data:', error);
     }
   };
 
@@ -116,9 +109,7 @@ const MyMessages = () => {
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       setMessages(data || []);
 
@@ -132,11 +123,11 @@ const MyMessages = () => {
           .order('created_at', { ascending: true });
 
         if (repliesError) {
-          // Don't throw here, just log - replies are optional
-        } else if (repliesData) {
+          console.error('Error loading replies:', repliesError);
+        } else {
           // Group replies by message_id
           const repliesByMessage: Record<string, MessageReply[]> = {};
-          repliesData.forEach(reply => {
+          repliesData?.forEach(reply => {
             if (!repliesByMessage[reply.message_id]) {
               repliesByMessage[reply.message_id] = [];
             }
@@ -146,8 +137,8 @@ const MyMessages = () => {
         }
       }
     } catch (error: any) {
+      console.error('Error loading messages:', error);
       toast.error('Failed to load your messages');
-      throw error; // Re-throw to be caught by initializePage
     }
   };
 
@@ -195,6 +186,7 @@ const MyMessages = () => {
         loadMessages(user.id);
       }
     } catch (error: any) {
+      console.error('Error sending reply:', error);
       toast.error('Failed to send reply');
     } finally {
       setIsSubmitting({ ...isSubmitting, [messageId]: false });

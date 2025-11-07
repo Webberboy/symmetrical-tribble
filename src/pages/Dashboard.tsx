@@ -25,6 +25,7 @@ const Dashboard = () => {
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
     } catch (error) {
+      console.error("Error parsing user data:", error);
       navigate("/auth");
     } finally {
       setLoading(false);

@@ -8,8 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { PencilIcon, XMarkIcon, CheckIcon, ClockIcon, XCircleIcon, CheckCircleIcon, EyeIcon } from '@heroicons/react/24/outline';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { PencilIcon, XMarkIcon, CheckIcon } from '@heroicons/react/24/outline';
 
 interface WireTransferManagementProps {
   user: any;
@@ -43,13 +42,6 @@ const WireTransferManagement: React.FC<WireTransferManagementProps> = ({ user, o
   const [isLoading, setIsLoading] = useState(true);
   const [accountsData, setAccountsData] = useState<any>(null);
 
-  // Wire transfer requests state
-  const [wireTransfers, setWireTransfers] = useState<any[]>([]);
-  const [loadingTransfers, setLoadingTransfers] = useState(false);
-  const [selectedTransfer, setSelectedTransfer] = useState<any>(null);
-  const [showTransferDetails, setShowTransferDetails] = useState(false);
-  const [processingTransferId, setProcessingTransferId] = useState<string | null>(null);
-
   // Store original values for cancel functionality
   const [originalValues, setOriginalValues] = useState<any>({});
 
@@ -68,13 +60,13 @@ const WireTransferManagement: React.FC<WireTransferManagementProps> = ({ user, o
   useEffect(() => {
     if (user?.id) {
       loadUserData();
-      loadWireTransfers();
     }
   }, [user]);
 
   const loadUserData = async () => {
     try {
       setIsLoading(true);
+      console.log('Loading data for user:', user.id);
 
       // Fetch accounts from accounts table
       const { data: accounts, error: accountsError } = await supabase
@@ -84,11 +76,15 @@ const WireTransferManagement: React.FC<WireTransferManagementProps> = ({ user, o
         .in('account_type', ['checking', 'savings']);
 
       if (accountsError) {
+        console.error('Accounts query error:', accountsError);
         throw accountsError;
       }
+      console.log('Accounts data:', accounts);
+      console.log('Number of accounts found:', accounts?.length);
 
       // Check if no accounts found
       if (!accounts || accounts.length === 0) {
+        console.warn('⚠️ No accounts found for user in accounts table');
         toast.error('No accounts found for this user. They may need to be created in the accounts table.');
       }
 
@@ -109,8 +105,10 @@ const WireTransferManagement: React.FC<WireTransferManagementProps> = ({ user, o
         .single();
 
       if (profileError) {
+        console.error('Profiles query error:', profileError);
         throw profileError;
       }
+      console.log('Profile data:', profile);
 
       // Store accounts data
       setAccountsData(accounts);
@@ -119,9 +117,12 @@ const WireTransferManagement: React.FC<WireTransferManagementProps> = ({ user, o
       const checkingAccount = accounts?.find((acc: any) => acc.account_type === 'checking');
       const savingsAccount = accounts?.find((acc: any) => acc.account_type === 'savings');
 
+      console.log('Checking account found:', checkingAccount);
+      console.log('Savings account found:', savingsAccount);
 
       // If no accounts found in accounts table, use profiles table balances
       if (!checkingAccount && !savingsAccount) {
+        console.log('⚠️ Using balances from profiles table');
         setCheckingsBalance(profile?.checking_balance?.toString() || '0');
         setSavingsBalance(profile?.savings_balance?.toString() || '0');
       } else {
@@ -137,6 +138,7 @@ const WireTransferManagement: React.FC<WireTransferManagementProps> = ({ user, o
 
       // Wire transfer control - explicitly check the value
       const isEnabled = profile?.wire_transfer_enabled === true || profile?.wire_transfer_enabled === null || profile?.wire_transfer_enabled === undefined;
+      console.log('Wire transfer enabled from DB:', profile?.wire_transfer_enabled, '→ Setting to:', isEnabled);
       setWireTransferEnabled(isEnabled);
       setWireTransferBlockReason(profile?.wire_transfer_block_reason || '');
 
@@ -153,6 +155,7 @@ const WireTransferManagement: React.FC<WireTransferManagementProps> = ({ user, o
       });
 
     } catch (error: any) {
+      console.error('Error loading user data:', error);
       toast.error('Failed to load user data: ' + error.message);
     } finally {
       setIsLoading(false);
@@ -183,9 +186,8 @@ const WireTransferManagement: React.FC<WireTransferManagementProps> = ({ user, o
     setIsEditingWireTransfer(false);
   };
 
-  const formatCurrency = (value: string | number) => {
-    const num = typeof value === 'string' ? parseFloat(value) : value;
-    if (isNaN(num)) return '$0.00';
+  const formatCurrency = (value: string) => {
+    const num = parseFloat(value) || 0;
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -198,12 +200,14 @@ const WireTransferManagement: React.FC<WireTransferManagementProps> = ({ user, o
 
     setIsSaving(true);
     try {
+      console.log('💾 Starting save operation...');
 
       // Update accounts table if accounts exist
       if (accountsData && accountsData.length > 0) {
         // Update checking account
         const checkingAccount = accountsData.find((acc: any) => acc.account_type === 'checking');
         if (checkingAccount) {
+          console.log('Updating checking account:', checkingAccount.id, 'with balance:', checkingsBalance);
           const { error: checkingError } = await supabase
             .from('accounts')
             .update({
@@ -213,13 +217,16 @@ const WireTransferManagement: React.FC<WireTransferManagementProps> = ({ user, o
             .eq('id', checkingAccount.id);
 
           if (checkingError) {
+            console.error('Checking update error:', checkingError);
             throw checkingError;
           }
+          console.log('✅ Checking account updated');
         }
 
         // Update savings account
         const savingsAccount = accountsData.find((acc: any) => acc.account_type === 'savings');
         if (savingsAccount) {
+          console.log('Updating savings account:', savingsAccount.id, 'with balance:', savingsBalance);
           const { error: savingsError } = await supabase
             .from('accounts')
             .update({
@@ -229,12 +236,19 @@ const WireTransferManagement: React.FC<WireTransferManagementProps> = ({ user, o
             .eq('id', savingsAccount.id);
 
           if (savingsError) {
+            console.error('Savings update error:', savingsError);
             throw savingsError;
           }
+          console.log('✅ Savings account updated');
         }
       }
 
       // Always update profiles table
+      console.log('Updating profiles table...');
+      console.log('💾 Wire transfer values being saved:', {
+        wire_transfer_enabled: wireTransferEnabled,
+        wire_transfer_block_reason: wireTransferEnabled ? null : wireTransferBlockReason
+      });
       const profileUpdates: any = {
         checking_last_credit: parseFloat(checkingLastCredit) || 0,
         checking_last_debit: parseFloat(checkingLastDebit) || 0,
@@ -249,6 +263,7 @@ const WireTransferManagement: React.FC<WireTransferManagementProps> = ({ user, o
       if (!accountsData || accountsData.length === 0) {
         profileUpdates.checking_balance = parseFloat(checkingsBalance) || 0;
         profileUpdates.savings_balance = parseFloat(savingsBalance) || 0;
+        console.log('Also updating balances in profiles table');
       }
 
       const { error: profileError } = await supabase
@@ -257,8 +272,10 @@ const WireTransferManagement: React.FC<WireTransferManagementProps> = ({ user, o
         .eq('id', user.id);
 
       if (profileError) {
+        console.error('Profile update error:', profileError);
         throw profileError;
       }
+      console.log('✅ Profiles table updated');
 
       // Exit all edit modes
       setIsEditingBalances(false);
@@ -279,116 +296,15 @@ const WireTransferManagement: React.FC<WireTransferManagementProps> = ({ user, o
       });
 
       toast.success('Account data updated successfully! ✅');
+      console.log('✅ Save operation complete');
       
       onUpdate(); // Refresh the user list
     } catch (error: any) {
+      console.error('❌ Error updating account data:', error);
       toast.error('Failed to update: ' + error.message);
     } finally {
       setIsSaving(false);
     }
-  };
-
-  const loadWireTransfers = async () => {
-    try {
-      setLoadingTransfers(true);
-      const { data, error } = await supabase
-        .from('wire_transfers')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setWireTransfers(data || []);
-    } catch (error: any) {
-      toast.error('Failed to load wire transfers');
-    } finally {
-      setLoadingTransfers(false);
-    }
-  };
-
-  const handleUpdateTransferStatus = async (transferId: string, newStatus: string) => {
-    try {
-      setProcessingTransferId(transferId);
-      
-      const transfer = wireTransfers.find(t => t.id === transferId);
-      
-      // Show confirmation for approval (since it deducts money)
-      if (newStatus === 'completed' && transfer) {
-        const confirmed = window.confirm(
-          `⚠️ CONFIRM APPROVAL\n\n` +
-          `This will:\n` +
-          `• Approve the wire transfer of ${formatCurrency(transfer.total_amount)}\n` +
-          `• Automatically deduct ${formatCurrency(transfer.total_amount)} from user's account\n` +
-          `• Mark the transfer as completed\n\n` +
-          `Are you sure you want to proceed?`
-        );
-        
-        if (!confirmed) {
-          setProcessingTransferId(null);
-          return;
-        }
-      }
-      
-      const { error } = await supabase
-        .from('wire_transfers')
-        .update({ 
-          status: newStatus,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', transferId);
-
-      if (error) throw error;
-
-      // Also update the associated transaction if it exists
-      if (transfer?.transaction_id) {
-        await supabase
-          .from('transactions')
-          .update({ 
-            status: newStatus === 'completed' ? 'completed' : newStatus === 'rejected' ? 'failed' : 'pending',
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', transfer.transaction_id);
-      }
-
-      const statusMessage = newStatus === 'completed' 
-        ? 'approved and amount deducted from user account' 
-        : newStatus === 'rejected' 
-        ? 'declined' 
-        : 'set to processing';
-      
-      toast.success(`Wire transfer ${statusMessage}!`);
-      await loadWireTransfers(); // Reload the list
-      setShowTransferDetails(false);
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to update transfer status');
-    } finally {
-      setProcessingTransferId(null);
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'bg-green-900/30 text-green-400 border-green-600';
-      case 'processing':
-        return 'bg-yellow-900/30 text-yellow-400 border-yellow-600';
-      case 'rejected':
-      case 'failed':
-        return 'bg-red-900/30 text-red-400 border-red-600';
-      case 'pending':
-      default:
-        return 'bg-blue-900/30 text-blue-400 border-blue-600';
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
   };
 
   if (isLoading) {
@@ -770,262 +686,6 @@ const WireTransferManagement: React.FC<WireTransferManagementProps> = ({ user, o
           ⚠️ Please provide a reason for blocking wire transfers before saving
         </p>
       )}
-
-      {/* Wire Transfer Requests Management */}
-      <Card className="bg-gray-900 border-gray-700">
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle className="text-white text-lg">Wire Transfer Requests</CardTitle>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={loadWireTransfers}
-              disabled={loadingTransfers}
-              className="text-blue-400 border-blue-400 hover:bg-blue-400 hover:text-white"
-            >
-              {loadingTransfers ? 'Refreshing...' : 'Refresh'}
-            </Button>
-          </div>
-          <p className="text-sm text-gray-400 mt-2">
-            Manage all wire transfer requests from this user
-          </p>
-          <div className="mt-3 p-3 bg-yellow-900/20 border border-yellow-800 rounded-lg">
-            <p className="text-sm text-yellow-400">
-              <strong>⚠️ Important:</strong> When you approve a wire transfer, the total amount (including fees) will be <strong>automatically deducted</strong> from the user's checking account balance. Make sure the user has sufficient funds before approving.
-            </p>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {loadingTransfers ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-            </div>
-          ) : wireTransfers.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-400">No wire transfer requests found</p>
-            </div>
-          ) : (
-            <>
-              {/* User's Current Balance Display */}
-              <div className="mb-4 p-3 bg-gray-800 border border-gray-700 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-400">User's Current Checking Balance:</span>
-                  <span className="text-lg font-bold text-white">{formatCurrency(checkingsBalance)}</span>
-                </div>
-              </div>
-              
-              <div className="space-y-3">
-              {wireTransfers.map((transfer) => (
-                <div
-                  key={transfer.id}
-                  className="p-4 bg-gray-800 border border-gray-700 rounded-lg hover:border-gray-600 transition-colors"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h4 className="text-white font-semibold">
-                          {formatCurrency(transfer.amount)}
-                        </h4>
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold border ${getStatusColor(transfer.status)}`}>
-                          {transfer.status.toUpperCase()}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-400">
-                        Total with fee: <span className="text-white font-semibold">{formatCurrency(transfer.total_amount)}</span>
-                      </p>
-                      <p className="text-sm text-gray-400">
-                        To: <span className="text-gray-300">{transfer.recipient_name}</span>
-                      </p>
-                      <p className="text-sm text-gray-400">
-                        Bank: <span className="text-gray-300">{transfer.recipient_bank_name}</span>
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {formatDate(transfer.created_at)}
-                      </p>
-                      
-                      {/* Balance Check Warning */}
-                      {transfer.status === 'pending' && parseFloat(checkingsBalance) < transfer.total_amount && (
-                        <div className="mt-2 p-2 bg-red-900/20 border border-red-800 rounded text-xs text-red-400">
-                          ⚠️ Insufficient funds! User has {formatCurrency(checkingsBalance)} but needs {formatCurrency(transfer.total_amount)}
-                        </div>
-                      )}
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => {
-                        setSelectedTransfer(transfer);
-                        setShowTransferDetails(true);
-                      }}
-                      className="text-blue-400 hover:text-blue-300"
-                    >
-                      <EyeIcon className="w-4 h-4 mr-1" />
-                      View
-                    </Button>
-                  </div>
-
-                  {/* Quick Action Buttons */}
-                  {transfer.status === 'pending' && (
-                    <div className="flex gap-2 mt-3 pt-3 border-t border-gray-700">
-                      <Button
-                        size="sm"
-                        onClick={() => handleUpdateTransferStatus(transfer.id, 'completed')}
-                        disabled={processingTransferId === transfer.id}
-                        className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                      >
-                        <CheckCircleIcon className="w-4 h-4 mr-1" />
-                        Approve
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => handleUpdateTransferStatus(transfer.id, 'processing')}
-                        disabled={processingTransferId === transfer.id}
-                        className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white"
-                      >
-                        <ClockIcon className="w-4 h-4 mr-1" />
-                        Processing
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => handleUpdateTransferStatus(transfer.id, 'rejected')}
-                        disabled={processingTransferId === transfer.id}
-                        className="flex-1 bg-red-600 hover:bg-red-700 text-white"
-                      >
-                        <XCircleIcon className="w-4 h-4 mr-1" />
-                        Decline
-                      </Button>
-                    </div>
-                  )}
-                  
-                  {transfer.status !== 'pending' && (
-                    <div className="mt-3 pt-3 border-t border-gray-700 text-xs text-gray-400">
-                      Status last updated: {formatDate(transfer.updated_at || transfer.created_at)}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Transfer Details Modal */}
-      <Dialog open={showTransferDetails} onOpenChange={setShowTransferDetails}>
-        <DialogContent className="bg-gray-900 border-gray-700 text-white max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-white text-xl">Wire Transfer Details</DialogTitle>
-            <DialogDescription className="text-gray-400">
-              Complete information about this wire transfer request
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedTransfer && (
-            <div className="space-y-4 mt-4">
-              {/* Amount and Status */}
-              <div className="p-4 bg-gray-800 rounded-lg text-center">
-                <p className="text-sm text-gray-400 mb-1">Transfer Amount</p>
-                <p className="text-3xl font-bold text-white mb-2">
-                  {formatCurrency(selectedTransfer.amount)}
-                </p>
-                <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold border ${getStatusColor(selectedTransfer.status)}`}>
-                  {selectedTransfer.status.toUpperCase()}
-                </span>
-              </div>
-
-              {/* Transfer Information */}
-              <div className="space-y-2">
-                <h3 className="font-semibold text-white">Transfer Information</h3>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <p className="text-gray-400">Transfer ID</p>
-                    <p className="text-gray-200 font-mono text-xs">{selectedTransfer.id}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400">Confirmation #</p>
-                    <p className="text-gray-200">{selectedTransfer.confirmation_number || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400">Fee</p>
-                    <p className="text-gray-200">{formatCurrency(selectedTransfer.fee || 0)}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400">Total Amount</p>
-                    <p className="text-gray-200 font-semibold">{formatCurrency(selectedTransfer.total_amount)}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Sender Information */}
-              <div className="space-y-2 p-3 bg-green-900/20 border border-green-800 rounded-lg">
-                <h3 className="font-semibold text-green-400">Sender</h3>
-                <div className="space-y-1 text-sm">
-                  <p className="text-gray-300">Account: {selectedTransfer.from_account_number}</p>
-                </div>
-              </div>
-
-              {/* Recipient Information */}
-              <div className="space-y-2 p-3 bg-red-900/20 border border-red-800 rounded-lg">
-                <h3 className="font-semibold text-red-400">Recipient</h3>
-                <div className="space-y-1 text-sm">
-                  <p className="text-gray-300">Name: {selectedTransfer.recipient_name}</p>
-                  <p className="text-gray-300">Bank: {selectedTransfer.recipient_bank_name}</p>
-                  <p className="text-gray-300">Account: {selectedTransfer.recipient_account_number}</p>
-                  <p className="text-gray-300">Routing: {selectedTransfer.recipient_routing_number}</p>
-                  {selectedTransfer.recipient_bank_address && (
-                    <p className="text-gray-300">Address: {selectedTransfer.recipient_bank_address}</p>
-                  )}
-                  {selectedTransfer.reference_message && (
-                    <p className="text-gray-300">Reference: {selectedTransfer.reference_message}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Dates */}
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <p className="text-gray-400">Created</p>
-                  <p className="text-gray-200">{formatDate(selectedTransfer.created_at)}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Last Updated</p>
-                  <p className="text-gray-200">{formatDate(selectedTransfer.updated_at || selectedTransfer.created_at)}</p>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              {selectedTransfer.status === 'pending' && (
-                <div className="flex gap-2 pt-4 border-t border-gray-700">
-                  <Button
-                    onClick={() => handleUpdateTransferStatus(selectedTransfer.id, 'completed')}
-                    disabled={processingTransferId === selectedTransfer.id}
-                    className="flex-1 bg-green-600 hover:bg-green-700"
-                  >
-                    <CheckCircleIcon className="w-4 h-4 mr-2" />
-                    Approve Transfer
-                  </Button>
-                  <Button
-                    onClick={() => handleUpdateTransferStatus(selectedTransfer.id, 'processing')}
-                    disabled={processingTransferId === selectedTransfer.id}
-                    className="flex-1 bg-yellow-600 hover:bg-yellow-700"
-                  >
-                    <ClockIcon className="w-4 h-4 mr-2" />
-                    Set to Processing
-                  </Button>
-                  <Button
-                    onClick={() => handleUpdateTransferStatus(selectedTransfer.id, 'rejected')}
-                    disabled={processingTransferId === selectedTransfer.id}
-                    className="flex-1 bg-red-600 hover:bg-red-700"
-                  >
-                    <XCircleIcon className="w-4 h-4 mr-2" />
-                    Decline Transfer
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
 
       {/* Info Message */}
       <div className="bg-blue-900/20 border border-blue-800 rounded-lg p-4">

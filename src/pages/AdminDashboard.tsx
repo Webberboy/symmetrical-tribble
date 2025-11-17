@@ -123,7 +123,8 @@ const AdminDashboard = () => {
 
       
       setIsAdmin(true);
-      await loadUsers();
+      setIsLoading(false); // Show UI immediately
+      loadUsers(); // Load users in background without await
     } catch (error: any) {
       toast.error('Failed to verify admin access');
       navigate("/xk9p2vnz7q");
@@ -133,32 +134,28 @@ const AdminDashboard = () => {
 
   const loadUsers = async () => {
     try {
-      
-      const { data: profiles, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Run both queries in parallel for faster loading
+      const [profilesResult, messagesResult] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('id, full_name, email, account_number, is_banned, ban_reason, created_at')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('messages')
+          .select('user_id')
+          .eq('status', 'pending')
+      ]);
 
-      
-      if (error) {
-        throw error;
+      if (profilesResult.error) {
+        throw profilesResult.error;
       }
       
-      if (!profiles || profiles.length === 0) {
-      } else {
-      }
-      
-      setUsers(profiles || []);
+      setUsers(profilesResult.data || []);
 
-      // Load users with pending messages and count
-      const { data: messagesData } = await supabase
-        .from('messages')
-        .select('user_id')
-        .eq('status', 'pending');
-
-      if (messagesData) {
+      // Process message counts
+      if (messagesResult.data) {
         const messageCounts = new Map<string, number>();
-        messagesData.forEach(msg => {
+        messagesResult.data.forEach(msg => {
           const count = messageCounts.get(msg.user_id) || 0;
           messageCounts.set(msg.user_id, count + 1);
         });
@@ -166,8 +163,6 @@ const AdminDashboard = () => {
       }
     } catch (error: any) {
       toast.error('Failed to load users: ' + error.message);
-    } finally {
-      setIsLoading(false);
     }
   };
 

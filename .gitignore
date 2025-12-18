@@ -106,3 +106,4 @@ db.json
 .vercel
 
 .vercel
+.env*.local

@@ -144,157 +144,129 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const loadSettings = async () => {
     try {
+      // Use hardcoded Unity Capital settings instead of database
+      const unityCapitalSettings = {
+        website_name: 'Unity Capital',
+        logo_url: null,
+        favicon_url: null,
+        meta_description: 'Secure online banking with modern features and 24/7 support',
+        primary_color: '#3B82F6',
+        secondary_color: '#10B981',
+        accent_color: '#F59E0B',
+        success_color: '#10B981',
+        warning_color: '#F59E0B',
+        error_color: '#EF4444',
+        hero_banner_url: null,
+        social_facebook: null,
+        social_twitter: null,
+        social_linkedin: null,
+        social_instagram: null,
+        social_youtube: null,
+        contact_email: 'support@unitycapital.com',
+        contact_phone: null,
+        contact_address: null,
+        enable_crypto: true,
+        enable_wire_transfers: true,
+        enable_internal_transfers: true,
+        enable_loans: true,
+        enable_bills: true,
+        enable_investments: true,
+        enable_statements: true,
+        enable_mobile_deposit: true,
+        enable_budgets: true,
+        enable_request_money: true,
+      };
+
+      // Set Unity Capital settings
+      setWebsiteName(unityCapitalSettings.website_name);
+      localStorage.setItem('website_name', unityCapitalSettings.website_name);
       
-      // Load white label settings FIRST (priority source)
-      const { data: whiteLabelData, error: whiteLabelError } = await supabase
-        .from('white_label_settings')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (whiteLabelError && whiteLabelError.code !== 'PGRST116') {
-      }
-
-      if (whiteLabelData) {
-        
-        // Set website name from white label settings
-        if (whiteLabelData.website_name) {
-          setWebsiteName(whiteLabelData.website_name);
-          localStorage.setItem('website_name', whiteLabelData.website_name);
-        }
-        
-        setLogoUrl(whiteLabelData.logo_url);
-        localStorage.setItem('logo_url', whiteLabelData.logo_url || '');
-        
-        setFaviconUrl(whiteLabelData.favicon_url);
-        localStorage.setItem('favicon_url', whiteLabelData.favicon_url || '');
-        
-        const metaDesc = whiteLabelData.meta_description || 'Secure online banking with modern features and 24/7 support';
-        setMetaDescription(metaDesc);
-        localStorage.setItem('meta_description', metaDesc);
-        
-        const color = whiteLabelData.primary_color || '#3B82F6';
-        setPrimaryColor(color);
-        localStorage.setItem('primary_color', color);
-        
-        const secondaryColor = whiteLabelData.secondary_color || '#10B981';
-        setSecondaryColor(secondaryColor);
-        localStorage.setItem('secondary_color', secondaryColor);
-        
-        const accentColor = whiteLabelData.accent_color || '#F59E0B';
-        setAccentColor(accentColor);
-        localStorage.setItem('accent_color', accentColor);
-        
-        const successColor = whiteLabelData.success_color || '#10B981';
-        setSuccessColor(successColor);
-        localStorage.setItem('success_color', successColor);
-        
-        const warningColor = whiteLabelData.warning_color || '#F59E0B';
-        setWarningColor(warningColor);
-        localStorage.setItem('warning_color', warningColor);
-        
-        const errorColor = whiteLabelData.error_color || '#EF4444';
-        setErrorColor(errorColor);
-        localStorage.setItem('error_color', errorColor);
-        
-        setHeroBannerUrl(whiteLabelData.hero_banner_url);
-        localStorage.setItem('hero_banner_url', whiteLabelData.hero_banner_url || '');
-        
-        setSocialFacebook(whiteLabelData.social_facebook);
-        localStorage.setItem('social_facebook', whiteLabelData.social_facebook || '');
-        
-        setSocialTwitter(whiteLabelData.social_twitter);
-        localStorage.setItem('social_twitter', whiteLabelData.social_twitter || '');
-        
-        setSocialLinkedin(whiteLabelData.social_linkedin);
-        localStorage.setItem('social_linkedin', whiteLabelData.social_linkedin || '');
-        
-        setSocialInstagram(whiteLabelData.social_instagram);
-        localStorage.setItem('social_instagram', whiteLabelData.social_instagram || '');
-        
-        setSocialYoutube(whiteLabelData.social_youtube);
-        localStorage.setItem('social_youtube', whiteLabelData.social_youtube || '');
-        
-        setContactEmail(whiteLabelData.contact_email);
-        localStorage.setItem('contact_email', whiteLabelData.contact_email || '');
-        
-        setContactPhone(whiteLabelData.contact_phone);
-        localStorage.setItem('contact_phone', whiteLabelData.contact_phone || '');
-        
-        setContactAddress(whiteLabelData.contact_address);
-        localStorage.setItem('contact_address', whiteLabelData.contact_address || '');
-        
-        const crypto = whiteLabelData.enable_crypto !== undefined ? whiteLabelData.enable_crypto : true;
-        setEnableCrypto(crypto);
-        localStorage.setItem('enable_crypto', String(crypto));
-        
-        const wire = whiteLabelData.enable_wire_transfers !== undefined ? whiteLabelData.enable_wire_transfers : true;
-        setEnableWireTransfers(wire);
-        localStorage.setItem('enable_wire_transfers', String(wire));
-        
-        const internal = whiteLabelData.enable_internal_transfers !== undefined ? whiteLabelData.enable_internal_transfers : true;
-        setEnableInternalTransfers(internal);
-        localStorage.setItem('enable_internal_transfers', String(internal));
-        
-        const loans = whiteLabelData.enable_loans !== undefined ? whiteLabelData.enable_loans : true;
-        setEnableLoans(loans);
-        localStorage.setItem('enable_loans', String(loans));
-        
-        const bills = whiteLabelData.enable_bills !== undefined ? whiteLabelData.enable_bills : true;
-        setEnableBills(bills);
-        localStorage.setItem('enable_bills', String(bills));
-        
-        const investments = whiteLabelData.enable_investments !== undefined ? whiteLabelData.enable_investments : true;
-        setEnableInvestments(investments);
-        localStorage.setItem('enable_investments', String(investments));
-        
-        const statements = whiteLabelData.enable_statements !== undefined ? whiteLabelData.enable_statements : true;
-        setEnableStatements(statements);
-        localStorage.setItem('enable_statements', String(statements));
-        
-        const mobileDeposit = whiteLabelData.enable_mobile_deposit !== undefined ? whiteLabelData.enable_mobile_deposit : true;
-        setEnableMobileDeposit(mobileDeposit);
-        localStorage.setItem('enable_mobile_deposit', String(mobileDeposit));
-        
-        const budgets = whiteLabelData.enable_budgets !== undefined ? whiteLabelData.enable_budgets : true;
-        setEnableBudgets(budgets);
-        localStorage.setItem('enable_budgets', String(budgets));
-        
-        const requestMoney = whiteLabelData.enable_request_money !== undefined ? whiteLabelData.enable_request_money : true;
-        setEnableRequestMoney(requestMoney);
-        localStorage.setItem('enable_request_money', String(requestMoney));
-        
-      } else {
-        
-        // Create a default settings row
-        const { data: newSettings, error: insertError } = await supabase
-          .from('white_label_settings')
-          .insert({
-            website_name: websiteName, // Use current name from app_settings
-            logo_url: null,
-            favicon_url: null,
-            meta_description: 'Secure online banking with modern features and 24/7 support',
-            primary_color: '#3B82F6',
-            contact_email: null,
-            contact_phone: null,
-            contact_address: null,
-            enable_crypto: true,
-            enable_wire_transfers: true,
-            enable_loans: true,
-            enable_bills: true,
-            enable_investments: true,
-          })
-          .select()
-          .single();
-        
-        if (insertError) {
-          if (insertError.code === '42501') {
-          }
-        } else {
-        }
-      }
+      setLogoUrl(unityCapitalSettings.logo_url);
+      localStorage.setItem('logo_url', unityCapitalSettings.logo_url || '');
+      
+      setFaviconUrl(unityCapitalSettings.favicon_url);
+      localStorage.setItem('favicon_url', unityCapitalSettings.favicon_url || '');
+      
+      setMetaDescription(unityCapitalSettings.meta_description);
+      localStorage.setItem('meta_description', unityCapitalSettings.meta_description);
+      
+      setPrimaryColor(unityCapitalSettings.primary_color);
+      localStorage.setItem('primary_color', unityCapitalSettings.primary_color);
+      
+      setSecondaryColor(unityCapitalSettings.secondary_color);
+      localStorage.setItem('secondary_color', unityCapitalSettings.secondary_color);
+      
+      setAccentColor(unityCapitalSettings.accent_color);
+      localStorage.setItem('accent_color', unityCapitalSettings.accent_color);
+      
+      setSuccessColor(unityCapitalSettings.success_color);
+      localStorage.setItem('success_color', unityCapitalSettings.success_color);
+      
+      setWarningColor(unityCapitalSettings.warning_color);
+      localStorage.setItem('warning_color', unityCapitalSettings.warning_color);
+      
+      setErrorColor(unityCapitalSettings.error_color);
+      localStorage.setItem('error_color', unityCapitalSettings.error_color);
+      
+      setHeroBannerUrl(unityCapitalSettings.hero_banner_url);
+      localStorage.setItem('hero_banner_url', unityCapitalSettings.hero_banner_url || '');
+      
+      setSocialFacebook(unityCapitalSettings.social_facebook);
+      localStorage.setItem('social_facebook', unityCapitalSettings.social_facebook || '');
+      
+      setSocialTwitter(unityCapitalSettings.social_twitter);
+      localStorage.setItem('social_twitter', unityCapitalSettings.social_twitter || '');
+      
+      setSocialLinkedin(unityCapitalSettings.social_linkedin);
+      localStorage.setItem('social_linkedin', unityCapitalSettings.social_linkedin || '');
+      
+      setSocialInstagram(unityCapitalSettings.social_instagram);
+      localStorage.setItem('social_instagram', unityCapitalSettings.social_instagram || '');
+      
+      setSocialYoutube(unityCapitalSettings.social_youtube);
+      localStorage.setItem('social_youtube', unityCapitalSettings.social_youtube || '');
+      
+      setContactEmail(unityCapitalSettings.contact_email);
+      localStorage.setItem('contact_email', unityCapitalSettings.contact_email || '');
+      
+      setContactPhone(unityCapitalSettings.contact_phone);
+      localStorage.setItem('contact_phone', unityCapitalSettings.contact_phone || '');
+      
+      setContactAddress(unityCapitalSettings.contact_address);
+      localStorage.setItem('contact_address', unityCapitalSettings.contact_address || '');
+      
+      setEnableCrypto(unityCapitalSettings.enable_crypto);
+      localStorage.setItem('enable_crypto', String(unityCapitalSettings.enable_crypto));
+      
+      setEnableWireTransfers(unityCapitalSettings.enable_wire_transfers);
+      localStorage.setItem('enable_wire_transfers', String(unityCapitalSettings.enable_wire_transfers));
+      
+      setEnableInternalTransfers(unityCapitalSettings.enable_internal_transfers);
+      localStorage.setItem('enable_internal_transfers', String(unityCapitalSettings.enable_internal_transfers));
+      
+      setEnableLoans(unityCapitalSettings.enable_loans);
+      localStorage.setItem('enable_loans', String(unityCapitalSettings.enable_loans));
+      
+      setEnableBills(unityCapitalSettings.enable_bills);
+      localStorage.setItem('enable_bills', String(unityCapitalSettings.enable_bills));
+      
+      setEnableInvestments(unityCapitalSettings.enable_investments);
+      localStorage.setItem('enable_investments', String(unityCapitalSettings.enable_investments));
+      
+      setEnableStatements(unityCapitalSettings.enable_statements);
+      localStorage.setItem('enable_statements', String(unityCapitalSettings.enable_statements));
+      
+      setEnableMobileDeposit(unityCapitalSettings.enable_mobile_deposit);
+      localStorage.setItem('enable_mobile_deposit', String(unityCapitalSettings.enable_mobile_deposit));
+      
+      setEnableBudgets(unityCapitalSettings.enable_budgets);
+      localStorage.setItem('enable_budgets', String(unityCapitalSettings.enable_budgets));
+      
+      setEnableRequestMoney(unityCapitalSettings.enable_request_money);
+      localStorage.setItem('enable_request_money', String(unityCapitalSettings.enable_request_money));
+      
     } catch (error) {
+      console.error('Error loading settings:', error);
     } finally {
       setIsLoading(false);
     }

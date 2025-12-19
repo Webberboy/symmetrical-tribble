@@ -7,7 +7,7 @@
   const SUPABASE_ANON_KEY = window.__SUPABASE_ANON_KEY__;
   
   // Default fallback if nothing in localStorage and API fails
-  const DEFAULT_NAME = 'Modern Banking';
+  const DEFAULT_NAME = 'Unity Capital';
   
   // Check if we have cached settings (for instant load)
   let cachedName = localStorage.getItem('website_name');

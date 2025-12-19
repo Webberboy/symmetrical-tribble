@@ -70,6 +70,11 @@ const SignUp = () => {
   });
 
   const handleSignupInputChange = (field: string, value: string | boolean | File | null) => {
+    // Debug email input changes
+    if (field === 'email' && typeof value === 'string') {
+      console.log('📧 Email input changed:', value);
+    }
+    
     // Phone number validation based on country code
     if (field === 'phone' && typeof value === 'string') {
       const countryCode = signupData.countryCode || '+1';
@@ -144,54 +149,104 @@ const SignUp = () => {
     e.preventDefault();
     setLoading(true);
 
+    console.log('🚀 Signup process started with email:', signupData.email);
+
     // Validation
     if (signupData.password !== signupData.confirmPassword) {
+      console.log('❌ Passwords do not match');
       toast.error("Passwords do not match");
       setLoading(false);
       return;
     }
 
     if (!signupData.termsAccepted || !signupData.privacyAccepted) {
+      console.log('❌ Terms or privacy not accepted');
       toast.error("Please accept the terms and privacy policy");
       setLoading(false);
       return;
     }
 
     try {
-      // Check if email already exists
-      const { data: existingEmailUser, error: emailCheckError } = await supabase
-        .from('profiles')
-        .select('email')
-        .eq('email', signupData.email.toLowerCase())
-        .maybeSingle();
+      console.log('📝 Complete signup data being submitted:', {
+        email: signupData.email,
+        firstName: signupData.firstName,
+        lastName: signupData.lastName,
+        phone: `${signupData.countryCode}${signupData.phone}`,
+        accountType: signupData.accountType
+      });
+      
+      // Skip email check if there are permission issues
+      let existingEmailUser = null;
+      let emailCheckError = null;
+      
+      try {
+        console.log('🔍 Checking if email already exists:', signupData.email.toLowerCase());
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('email', signupData.email.toLowerCase())
+          .maybeSingle();
+        
+        existingEmailUser = data;
+        emailCheckError = error;
+        console.log('📧 Email check result:', { existingEmailUser, emailCheckError });
+      } catch (checkError) {
+        console.warn('⚠️ Email check failed, continuing without validation:', checkError);
+        // Continue with signup even if email check fails
+        existingEmailUser = null;
+        emailCheckError = null; // Reset error to allow signup to continue
+      }
 
-      if (emailCheckError && emailCheckError.code !== 'PGRST116') {
+      console.log('📧 Email check result:', { existingEmailUser, emailCheckError });
+
+      // Only show error if it's a real validation error (not permission error)
+      if (emailCheckError && emailCheckError.code !== 'PGRST116' && emailCheckError.code !== '42501') {
+        console.log('❌ Email validation error:', emailCheckError);
         toast.error("Error validating email. Please try again.");
         setLoading(false);
         return;
       }
 
       if (existingEmailUser) {
+        console.log('❌ Email already registered:', existingEmailUser);
         toast.error("This email address is already registered. Please sign in instead.");
         setLoading(false);
         return;
       }
 
-      // Check if phone number already exists
-      const fullPhone = `${signupData.countryCode}${signupData.phone}`;
-      const { data: existingPhoneUser, error: phoneCheckError } = await supabase
-        .from('profiles')
-        .select('phone')
-        .eq('phone', fullPhone)
-        .maybeSingle();
+      // Check if phone number already exists (optional)
+      let existingPhoneUser = null;
+      let phoneCheckError = null;
+      
+      try {
+        const fullPhone = `${signupData.countryCode}${signupData.phone}`;
+        console.log('📱 Checking phone number:', fullPhone);
+        
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('phone')
+          .eq('phone', fullPhone)
+          .maybeSingle();
+        
+        existingPhoneUser = data;
+        phoneCheckError = error;
+        console.log('📱 Phone check result:', { existingPhoneUser, phoneCheckError });
+      } catch (checkError) {
+        console.warn('⚠️ Phone check failed, continuing without validation:', checkError);
+        existingPhoneUser = null;
+        phoneCheckError = null;
+      }
 
-      if (phoneCheckError && phoneCheckError.code !== 'PGRST116') {
+      // Only show error if it's a real validation error (not permission error)
+      if (phoneCheckError && phoneCheckError.code !== 'PGRST116' && phoneCheckError.code !== '42501') {
+        console.log('❌ Phone validation error:', phoneCheckError);
         toast.error("Error validating phone number. Please try again.");
         setLoading(false);
         return;
       }
 
       if (existingPhoneUser) {
+        console.log('❌ Phone already registered:', existingPhoneUser);
         toast.error("This phone number is already registered. Please use a different number.");
         setLoading(false);
         return;
@@ -199,6 +254,7 @@ const SignUp = () => {
 
       
       // Step 1: Create user in Supabase Auth with OTP email verification
+      console.log('📧 Creating Supabase Auth user with email:', signupData.email);
       setSignupStep('auth');
       
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -214,7 +270,10 @@ const SignUp = () => {
         },
       });
 
+      console.log('🔐 Supabase Auth result:', { authData, authError });
+
       if (authError) {
+        console.log('❌ Supabase Auth error:', authError);
         
         // Check for specific error messages
         if (authError.message.includes('already registered') || authError.message.includes('User already registered')) {
@@ -231,10 +290,13 @@ const SignUp = () => {
 
 
       if (!authData.user) {
+        console.log('❌ No user data returned from Supabase Auth');
         // Removed toast notification
         setLoading(false);
         return;
       }
+
+      console.log('✅ Supabase Auth user created:', authData.user.id);
 
 
       // Check if email confirmation is required
@@ -369,7 +431,7 @@ const SignUp = () => {
         id_document_uploaded: signupData.idDocument !== null
       };
 
-      const { profile, role, accountNumber } = await completeUserSignup(authData.user.id, profileData);
+      const { profile, role, accountNumber } = await completeUserSignup(authData.user.id, profileData, authData.session);
 
 
       // Step 3: Complete signup

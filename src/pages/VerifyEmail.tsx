@@ -12,7 +12,7 @@ const VerifyEmail = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [email, setEmail] = useState<string>("");
-  const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
+  const [otp, setOtp] = useState<string[]>(["", "", "", "", "", "", "", ""]);
   const [verifying, setVerifying] = useState(false);
   const [verified, setVerified] = useState(false);
   const [resending, setResending] = useState(false);
@@ -51,7 +51,7 @@ const VerifyEmail = () => {
     setOtp(newOtp);
 
     // Auto-focus next input
-    if (value && index < 5) {
+    if (value && index < 7) {
       inputRefs.current[index + 1]?.focus();
     }
   };
@@ -73,14 +73,15 @@ const VerifyEmail = () => {
     // Arrow keys navigation
     else if (e.key === "ArrowLeft" && index > 0) {
       inputRefs.current[index - 1]?.focus();
-    } else if (e.key === "ArrowRight" && index < 5) {
+    }
+    else if (e.key === "ArrowRight" && index < 7) {
       inputRefs.current[index + 1]?.focus();
     }
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData("text").slice(0, 6);
+    const pastedData = e.clipboardData.getData("text").slice(0, 8);
     
     if (!/^\d+$/.test(pastedData)) {
       toast.error("Please paste only digits");
@@ -94,15 +95,15 @@ const VerifyEmail = () => {
     setOtp(newOtp);
 
     // Focus last filled input or first empty
-    const nextIndex = Math.min(pastedData.length, 5);
+    const nextIndex = Math.min(pastedData.length, 7);
     inputRefs.current[nextIndex]?.focus();
   };
 
   const handleVerifyOtp = async () => {
     const otpCode = otp.join("");
     
-    if (otpCode.length !== 6) {
-      toast.error("Please enter the complete 6-digit code");
+    if (otpCode.length !== 8) {
+      toast.error("Please enter the complete 8-digit code");
       return;
     }
 
@@ -228,7 +229,7 @@ const VerifyEmail = () => {
       } else {
         toast.success("New verification code sent!");
         setCountdown(60); // 60 second cooldown
-        setOtp(["", "", "", "", "", ""]); // Clear inputs
+        setOtp(["", "", "", "", "", "", "", ""]); // Clear inputs
         inputRefs.current[0]?.focus();
       }
     } catch (error: any) {
@@ -238,7 +239,7 @@ const VerifyEmail = () => {
     }
   };
 
-  // Auto-submit when all 6 digits are entered
+  // Auto-submit when all 8 digits are entered
   useEffect(() => {
     if (otp.every(digit => digit !== "") && !verifying && !verified) {
       handleVerifyOtp();
@@ -298,7 +299,7 @@ const VerifyEmail = () => {
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">Verify your email</h2>
                   <p className="text-gray-600 mb-2">
-                    We've sent a 6-digit code to
+                    We've sent an 8-digit code to
                   </p>
                   {email && (
                     <p className="text-base font-semibold text-gray-900">{email}</p>

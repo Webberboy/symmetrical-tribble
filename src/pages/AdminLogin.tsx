@@ -48,6 +48,7 @@ const AdminLogin = () => {
         };
         
         localStorage.setItem('adminUser', JSON.stringify(mockAdminUser));
+        localStorage.setItem('testAdminSession', 'true'); // Add test session flag
         toast.success('Test Admin Login Successful!');
         navigate('/xk9p2vnz7q-dash');
         setIsLoading(false);
@@ -60,63 +61,36 @@ const AdminLogin = () => {
     }
 
     try {
-      // Step 1: Authenticate with Supabase
-      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password: password.trim(),
-      });
-
-      if (signInError) {
-        toast.error(signInError.message || 'Invalid email or password');
-        setIsLoading(false);
-        return;
-      }
-
-      if (!authData.session || !authData.user) {
-        toast.error('Authentication failed. Please try again.');
-        setIsLoading(false);
-        return;
-      }
-
-
-      // Step 2: Check admin_users table
+      // Use the new admin table with email/password authentication
       const { data: adminData, error: adminError } = await supabase
-        .from('admin_users')
-        .select('id, email, role, permissions, is_active')
-        .eq('user_id', authData.user.id)
-        .eq('is_active', true)
-        .single();
+        .rpc('verify_admin_login', {
+          p_email: email.trim(),
+          p_password: password.trim()
+        });
 
-      if (adminError || !adminData) {
-        toast.error('Access denied. Admin privileges required.');
-        await supabase.auth.signOut();
+      if (adminError || !adminData || !adminData[0]?.success) {
+        toast.error('Invalid admin credentials or account inactive');
         setIsLoading(false);
         return;
       }
 
+      const admin = adminData[0];
 
-      // Step 3: Store admin info
+      // Store admin info
       localStorage.setItem('adminUser', JSON.stringify({
-        id: authData.user.id,
-        email: adminData.email,
-        role: adminData.role,
-        permissions: adminData.permissions,
+        id: admin.admin_id,
+        email: admin.admin_email,
+        role: admin.admin_role,
+        permissions: { all: true }, // You can customize this based on role
         isAdmin: true
       }));
 
-      // Step 4: Update last login
-      await supabase
-        .from('admin_users')
-        .update({ last_login: new Date().toISOString() })
-        .eq('user_id', authData.user.id);
-
       // Success!
-      toast.success('Welcome!');
+      toast.success('Welcome Admin!');
       navigate('/xk9p2vnz7q-dash');
 
     } catch (error: any) {
       toast.error(error.message || 'An error occurred during login');
-      await supabase.auth.signOut();
     } finally {
       setIsLoading(false);
     }

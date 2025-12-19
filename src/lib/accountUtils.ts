@@ -1,4 +1,6 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/integrations/supabase/client';
+import { createClient } from '@supabase/supabase-js';
+import type { Database } from '@/integrations/supabase/types';
 
 /**
  * Generate a unique account number on the frontend
@@ -135,12 +137,32 @@ export const assignUserRole = async (userId: string, role: 'user' | 'admin' = 'u
  * Savings account gets a new unique account number
  * @param userId - The user ID from Supabase auth
  * @param checkingAccountNumber - The account number to use for checking account
+ * @param session - The user's session for authenticated requests
  * @returns Promise<{checkingAccountNumber: string, savingsAccountNumber: string}>
  */
-export const createUserAccounts = async (userId: string, checkingAccountNumber: string) => {
+export const createUserAccounts = async (userId: string, checkingAccountNumber: string, session?: any) => {
   try {
+    // Use authenticated client if session is provided
+    let client = supabase;
+    if (session?.access_token) {
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+      const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      client = createClient<Database>(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY,
+        {
+          global: {
+            headers: {
+              Authorization: `Bearer ${session.access_token}`
+            }
+          }
+        }
+      );
+    }
+
     // Create checking account with existing account number
-    const { error: checkingError } = await supabase
+    const { error: checkingError } = await client
       .from('accounts')
       .insert({
         user_id: userId,
@@ -160,7 +182,7 @@ export const createUserAccounts = async (userId: string, checkingAccountNumber: 
     const savingsAccountNumber = await generateAccountNumber();
 
     // Create savings account with new unique account number
-    const { error: savingsError } = await supabase
+    const { error: savingsError } = await client
       .from('accounts')
       .insert({
         user_id: userId,
@@ -187,15 +209,16 @@ export const createUserAccounts = async (userId: string, checkingAccountNumber: 
  * Complete user signup process with profile and role creation
  * @param userId - The user ID from Supabase auth
  * @param profileData - The profile data from the signup form
+ * @param session - The user's session for authenticated requests (optional)
  * @returns Promise<{profile: any, role: any, accountNumber: string}>
  */
-export const completeUserSignup = async (userId: string, profileData: any) => {
+export const completeUserSignup = async (userId: string, profileData: any, session?: any) => {
   try {
     // Create profile
     const { profile, accountNumber } = await createUserProfile(userId, profileData);
 
     // Create checking and savings accounts
-    const { checkingAccountNumber, savingsAccountNumber } = await createUserAccounts(userId, accountNumber);
+    const { checkingAccountNumber, savingsAccountNumber } = await createUserAccounts(userId, accountNumber, session);
 
     // Assign user role
     const role = await assignUserRole(userId, 'user');

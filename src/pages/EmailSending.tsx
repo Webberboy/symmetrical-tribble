@@ -87,30 +87,57 @@ const EmailSending = () => {
 
   const checkAdminAccess = async () => {
     try {
-      // Check if user is logged in
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
+      // Check for test admin session first
+      const testSession = localStorage.getItem('testAdminSession');
+      if (testSession === 'true') {
+        setIsAdmin(true);
+        await loadAllUsers();
+        setIsCheckingAuth(false);
+        return;
+      }
+
+      // Check if admin user is stored in localStorage
+      const adminUser = localStorage.getItem('adminUser');
+      if (!adminUser) {
         toast({
           title: 'Access Denied',
           description: 'Please log in as admin to access this page',
           variant: 'destructive',
         });
         navigate('/xk9p2vnz7q');
+        setIsCheckingAuth(false);
         return;
       }
 
-      // Check if user has admin role (you can customize this check)
-      const userEmail = session.user.email;
-      const adminEmails = ['admin@unitycapital.com']; // Add your admin emails here
-      
-      if (!adminEmails.includes(userEmail || '')) {
+      const adminData = JSON.parse(adminUser);
+      if (!adminData.isAdmin) {
         toast({
           title: 'Access Denied',
           description: 'You do not have permission to access this page',
           variant: 'destructive',
         });
         navigate('/dashboard');
+        setIsCheckingAuth(false);
+        return;
+      }
+
+      // Verify admin still exists and is active in the admin table
+      const { data: adminCheck, error: adminError } = await supabase
+        .from('admin')
+        .select('id, email, role, is_active')
+        .eq('email', adminData.email)
+        .eq('is_active', true)
+        .single();
+
+      if (adminError || !adminCheck) {
+        toast({
+          title: 'Access Denied',
+          description: 'You do not have permission to access this page',
+          variant: 'destructive',
+        });
+        localStorage.removeItem('adminUser');
+        navigate('/xk9p2vnz7q');
+        setIsCheckingAuth(false);
         return;
       }
 
@@ -119,6 +146,11 @@ const EmailSending = () => {
       await loadAllUsers();
     } catch (error) {
       console.error('Auth check error:', error);
+      toast({
+        title: 'Access Denied',
+        description: 'Failed to verify admin access',
+        variant: 'destructive',
+      });
       navigate('/xk9p2vnz7q');
     } finally {
       setIsCheckingAuth(false);

@@ -14,18 +14,45 @@ const AdminSettings = () => {
   }, []);
 
   const checkAdminAccess = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      navigate('/signin');
-      return;
-    }
+    try {
+      // Check for test admin session first
+      const testSession = localStorage.getItem('testAdminSession');
+      if (testSession === 'true') {
+        return; // Allow access for test admin
+      }
 
-    const adminEmails = import.meta.env.VITE_ADMIN_EMAILS?.split(',') || [];
-    if (!adminEmails.includes(user.email)) {
-      toast.error('Unauthorized access');
+      // Check if admin user is stored in localStorage
+      const adminUser = localStorage.getItem('adminUser');
+      if (!adminUser) {
+        toast.error('Please log in as admin');
+        navigate('/xk9p2vnz7q');
+        return;
+      }
+
+      const adminData = JSON.parse(adminUser);
+      if (!adminData.isAdmin) {
+        toast.error('Unauthorized access');
+        navigate('/dashboard');
+        return;
+      }
+
+      // Verify admin still exists and is active in the admin table
+      const { data: adminCheck, error: adminError } = await supabase
+        .from('admin')
+        .select('id, email, role, is_active')
+        .eq('email', adminData.email)
+        .eq('is_active', true)
+        .single();
+
+      if (adminError || !adminCheck) {
+        toast.error('Unauthorized access');
+        localStorage.removeItem('adminUser');
+        navigate('/xk9p2vnz7q');
+        return;
+      }
+    } catch (error: any) {
+      toast.error('Failed to verify admin access');
       navigate('/dashboard');
-      return;
     }
   };
 

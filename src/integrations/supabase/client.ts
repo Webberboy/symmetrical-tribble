@@ -5,6 +5,12 @@ import type { Database } from './types';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+// Debug Supabase configuration
+console.log('🔧 Supabase Client Configuration:');
+console.log('📍 URL:', SUPABASE_URL);
+console.log('🔑 Key exists:', !!SUPABASE_PUBLISHABLE_KEY);
+console.log('🔑 Key length:', SUPABASE_PUBLISHABLE_KEY?.length);
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
@@ -13,5 +19,11 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
+  },
+  global: {
+    headers: {
+      'apikey': SUPABASE_PUBLISHABLE_KEY,
+      'Authorization': `Bearer ${SUPABASE_PUBLISHABLE_KEY}`
+    }
   }
 });

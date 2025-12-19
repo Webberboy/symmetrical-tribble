@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Signup Fix</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Test Signup Permissions</h1>
+    <button onclick="testAnonInsert()">Test Anonymous Insert</button>
+    <div id="result"></div>
+
+    <script>
+        // Initialize Supabase client with your project details
+        const supabaseUrl = 'https://jovrfejbutfrzvclchuf.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvdnJmZWpidXRmcnp2Y2xjaHVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwNjgwOTksImV4cCI6MjA4MTY0NDA5OX0.torsxZlwh29SHD6iBp6dn-n3y_ZLhWe9Pqk4iFM_SX8';
+        
+        const client = supabase.createClient(supabaseUrl, supabaseKey);
+
+        async function testAnonInsert() {
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                // Test 1: Try to insert into pending_signups as anon
+                const testPendingData = {
+                    auth_user_id: '00000000-0000-0000-0000-000000000000', // dummy UUID
+                    email: 'test@example.com',
+                    signup_data: { test: 'data' }
+                };
+                
+                const { data: pendingData, error: pendingError } = await client
+                    .from('pending_signups')
+                    .insert(testPendingData)
+                    .select()
+                    .single();
+                
+                if (pendingError) {
+                    resultDiv.innerHTML += `<p style="color: red;">❌ Pending signups insert failed: ${pendingError.message}</p>`;
+                } else {
+                    resultDiv.innerHTML += `<p style="color: green;">✅ Pending signups insert successful</p>`;
+                }
+
+                // Test 2: Try to insert into profiles as anon
+                const testProfileData = {
+                    id: '00000000-0000-0000-0000-000000000000', // dummy UUID
+                    full_name: 'Test User',
+                    first_name: 'Test',
+                    last_name: 'User',
+                    email: 'test@example.com',
+                    account_type: 'checking',
+                    account_number: '4012500000001'
+                };
+                
+                const { data: profileData, error: profileError } = await client
+                    .from('profiles')
+                    .insert(testProfileData)
+                    .select()
+                    .single();
+                
+                if (profileError) {
+                    resultDiv.innerHTML += `<p style="color: red;">❌ Profiles insert failed: ${profileError.message}</p>`;
+                } else {
+                    resultDiv.innerHTML += `<p style="color: green;">✅ Profiles insert successful</p>`;
+                }
+
+                // Test 3: Try to select from profiles as anon (should fail due to RLS)
+                const { data: selectData, error: selectError } = await client
+                    .from('profiles')
+                    .select('*')
+                    .limit(1);
+                
+                if (selectError) {
+                    resultDiv.innerHTML += `<p style="color: orange;">⚠️ Profiles select failed (expected): ${selectError.message}</p>`;
+                } else {
+                    resultDiv.innerHTML += `<p style="color: green;">✅ Profiles select successful (unexpected for anon)</p>`;
+                }
+
+            } catch (error) {
+                resultDiv.innerHTML += `<p style="color: red;">❌ Test error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

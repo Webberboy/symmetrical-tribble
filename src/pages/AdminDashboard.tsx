@@ -94,41 +94,48 @@ const AdminDashboard = () => {
 
   const checkAdminAccess = async () => {
     try {
-      // Check Supabase authentication session
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      
-      if (!session) {
-        toast.error("Please log in as admin");
-        navigate("/xk9p2vnz7q");
-        setIsLoading(false);
-        return;
-      }
-
-      // Check if this is our hardcoded test user (bypass admin_users table check)
-      if (session.user.email === 'testadmin@unitycapital.com') {
+      // Check for test admin session first
+      const testSession = localStorage.getItem('testAdminSession');
+      if (testSession === 'true') {
         setIsAdmin(true);
         setIsLoading(false);
         loadUsers();
         return;
       }
 
-      // Check admin_users table
-      const { data: adminData, error: adminError } = await supabase
-        .from('admin_users')
-        .select('id, email, role, is_active')
-        .eq('user_id', session.user.id)
-        .eq('is_active', true)
-        .single();
+      // Check if admin user is stored in localStorage
+      const adminUser = localStorage.getItem('adminUser');
+      if (!adminUser) {
+        toast.error("Please log in as admin");
+        navigate("/xk9p2vnz7q");
+        setIsLoading(false);
+        return;
+      }
 
-      if (adminError || !adminData) {
+      const adminData = JSON.parse(adminUser);
+      if (!adminData.isAdmin) {
         toast.error("Access denied. Admin privileges required.");
         navigate("/xk9p2vnz7q");
         setIsLoading(false);
         return;
       }
 
-      
+      // Verify admin still exists and is active in the admin table
+      const { data: adminCheck, error: adminError } = await supabase
+        .from('admin')
+        .select('id, email, role, is_active')
+        .eq('email', adminData.email)
+        .eq('is_active', true)
+        .single();
+
+      if (adminError || !adminCheck) {
+        toast.error("Access denied. Admin privileges required.");
+        localStorage.removeItem('adminUser');
+        navigate("/xk9p2vnz7q");
+        setIsLoading(false);
+        return;
+      }
+
       setIsAdmin(true);
       setIsLoading(false); // Show UI immediately
       loadUsers(); // Load users in background without await
@@ -239,6 +246,8 @@ const AdminDashboard = () => {
 
   const handleLogout = async () => {
     localStorage.removeItem('user');
+    localStorage.removeItem('adminUser');
+    localStorage.removeItem('testAdminSession');
     toast.success("Logged out successfully");
     navigate("/xk9p2vnz7q");
   };

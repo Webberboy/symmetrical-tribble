@@ -37,8 +37,8 @@ async function getWebsiteSettings() {
  */
 const EMAIL_CONFIG = {
   // Using verified domain for professional branded emails
-  from: 'noreply@heritagebk.org', // Will be combined with website name dynamically
-  replyTo: 'support@heritagebk.org',
+  from: 'noreply@unitycapital.com', // Will be combined with website name dynamically
+    replyTo: 'support@unitycapital.com',
 };
 
 /**
@@ -161,7 +161,7 @@ export const sendVerificationEmail = async (
                           © 2025 ${websiteName}. All rights reserved.
                         </p>
                         <p style="color: #9ca3af; font-size: 12px; margin: 0;">
-                          Need help? Contact us at <a href="mailto:support@heritagebk.org" style="color: #2563eb; text-decoration: none;">support@heritagebk.org</a>
+                          Need help? Contact us at <a href="mailto:support@unitycapital.com" style="color: #2563eb; text-decoration: none;">support@unitycapital.com</a>
                         </p>
                       </td>
                     </tr>

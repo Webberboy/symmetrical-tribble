@@ -12,8 +12,8 @@ export const generateAccountNumber = async (): Promise<string> => {
   const maxAttempts = 10;
 
   while (attempts < maxAttempts) {
-    // Heritage Bank Professional Format: 401-25-XXXXXXX
-    const bankCode = '401';        // Heritage Bank routing prefix
+    // Unity Capital Professional Format: 401-25-XXXXXXX
+const bankCode = '401';        // Unity Capital routing prefix
     const branchCode = '25';       // Default branch code
     const accountDigits = Math.floor(Math.random() * 10000000); // 7-digit account number
     const accountNumber = bankCode + branchCode + accountDigits.toString().padStart(7, '0');

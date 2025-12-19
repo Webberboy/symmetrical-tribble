@@ -17,7 +17,7 @@ const AdminTest = () => {
     const envAdminEmails = import.meta.env.VITE_ADMIN_EMAILS || '';
     const ADMIN_EMAILS = envAdminEmails 
       ? envAdminEmails.split(',').map((email: string) => email.trim().toLowerCase())
-      : ['admin@heritagebk.org'];
+      : ['admin@unitycapital.com'];
 
     setInfo({
       isLoggedIn: !!session,

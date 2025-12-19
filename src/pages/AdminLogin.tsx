@@ -121,7 +121,7 @@ const AdminLogin = () => {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@heritagebk.org"
+                  placeholder="admin@unitycapital.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="h-10 sm:h-11 pl-9 bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-red-400 focus:ring-red-400"

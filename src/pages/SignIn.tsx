@@ -51,7 +51,7 @@ const SignIn = () => {
           .limit(1)
           .single();
         
-        const supportEmail = settingsData?.support_email || 'support@heritagebk.org';
+        const supportEmail = settingsData?.support_email || 'support@unitycapital.com';
         
         toast.error(
           <div className="space-y-2">

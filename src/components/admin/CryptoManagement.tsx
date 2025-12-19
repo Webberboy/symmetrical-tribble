@@ -422,7 +422,7 @@ const CryptoManagement: React.FC<CryptoManagementProps> = ({ user, onUpdate }) =
         .upsert({
           asset_id: 'btc',
           wallet_address: btcWalletAddress,
-          wallet_name: 'Heritage Bank BTC Wallet',
+          wallet_name: 'Unity Capital BTC Wallet',
           is_active: true
         }, { onConflict: 'asset_id' });
 
@@ -434,7 +434,7 @@ const CryptoManagement: React.FC<CryptoManagementProps> = ({ user, onUpdate }) =
         .upsert({
           asset_id: 'eth',
           wallet_address: ethWalletAddress,
-          wallet_name: 'Heritage Bank ETH Wallet',
+          wallet_name: 'Unity Capital ETH Wallet',
           is_active: true
         }, { onConflict: 'asset_id' });
 
@@ -446,7 +446,7 @@ const CryptoManagement: React.FC<CryptoManagementProps> = ({ user, onUpdate }) =
         .upsert({
           asset_id: 'ada',
           wallet_address: adaWalletAddress,
-          wallet_name: 'Heritage Bank ADA Wallet',
+          wallet_name: 'Unity Capital ADA Wallet',
           is_active: true
         }, { onConflict: 'asset_id' });
 

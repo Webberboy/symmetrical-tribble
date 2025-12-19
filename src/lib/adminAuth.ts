@@ -56,7 +56,7 @@ export function checkAdminEmail(email: string): boolean {
   const envAdminEmails = import.meta.env.VITE_ADMIN_EMAILS || '';
   const ADMIN_EMAILS = envAdminEmails 
     ? envAdminEmails.split(',').map((e: string) => e.trim().toLowerCase())
-    : ['admin@heritagebk.org'];
+    : ['admin@unitycapital.com'];
 
   return ADMIN_EMAILS.includes(email.toLowerCase());
 }
@@ -215,7 +215,7 @@ if (!adminUser) {
 const hasAccess = await checkAdminTable(userId);
 
 // Example 4: Email check
-if (checkAdminEmail('admin@heritagebk.org')) {
+if (checkAdminEmail('admin@unitycapital.com')) {
   // Allow access
 }
 */

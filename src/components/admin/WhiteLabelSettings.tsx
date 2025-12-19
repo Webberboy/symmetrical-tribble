@@ -44,7 +44,7 @@ const WhiteLabelSettings: React.FC = () => {
   const [uploading, setUploading] = useState<'logo' | 'favicon' | 'hero_banner' | null>(null);
   
   const [settings, setSettings] = useState<WhiteLabelSettings>({
-    website_name: 'Heritage Financial',
+    website_name: 'Unity Capital',
     logo_url: null,
     favicon_url: null,
     meta_description: 'Secure online banking with modern features and 24/7 support',
@@ -63,7 +63,7 @@ const WhiteLabelSettings: React.FC = () => {
     contact_email: null,
     contact_phone: null,
     contact_address: null,
-    support_email: 'support@heritagebk.org',
+    support_email: 'support@unitycapital.com',
     enable_crypto: true,
     enable_wire_transfers: true,
     enable_internal_transfers: true,
@@ -329,7 +329,7 @@ const WhiteLabelSettings: React.FC = () => {
               setSettings({ ...settings, website_name: e.target.value })
             }
             className="w-full px-3 sm:px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
-            placeholder="Heritage Financial"
+            placeholder="Unity Capital"
           />
           <p className="text-xs text-gray-400 mt-1">
             Shown in page titles and throughout the platform
@@ -482,7 +482,7 @@ const WhiteLabelSettings: React.FC = () => {
               setSettings({ ...settings, support_email: e.target.value })
             }
             className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="support@heritagebk.org"
+            placeholder="support@unitycapital.com"
           />
           <p className="text-xs text-gray-400 mt-1">
             Email shown to banned users when they try to log in

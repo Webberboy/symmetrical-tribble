@@ -32,7 +32,7 @@ const EmailSending = () => {
   // Generate the full HTML email with branded header and footer
   const generateFullEmail = (body: string) => {
     const currentYear = new Date().getFullYear();
-    const bankName = websiteName || 'Heritage Bank';
+    const bankName = websiteName || 'Unity Capital';
     
     return `<!DOCTYPE html>
 <html>
@@ -68,7 +68,7 @@ const EmailSending = () => {
                   © ${currentYear} ${bankName}. All rights reserved.
                 </p>
                 <p style="color: #9ca3af; font-size: 12px; margin: 0;">
-                  Need help? Contact us at support@heritagebk.org
+                  Need help? Contact us at support@unitycapital.com
                 </p>
               </td>
             </tr>
@@ -102,7 +102,7 @@ const EmailSending = () => {
 
       // Check if user has admin role (you can customize this check)
       const userEmail = session.user.email;
-      const adminEmails = ['admin@heritagebk.org']; // Add your admin emails here
+      const adminEmails = ['admin@unitycapital.com']; // Add your admin emails here
       
       if (!adminEmails.includes(userEmail || '')) {
         toast({
@@ -241,7 +241,7 @@ const EmailSending = () => {
           const { data, error } = await supabase.functions.invoke('send-custom-email', {
             body: {
               fromName: websiteName || 'Heritage Bank',
-              fromEmail: 'admin@heritagebk.org',
+              fromEmail: 'admin@unitycapital.com',
               toEmail: email,
               subject: formData.subject,
               htmlContent: fullHtml,

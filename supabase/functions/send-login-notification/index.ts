@@ -35,8 +35,8 @@ serve(async (req) => {
       timeZoneName: 'short'
     });
 
-    const changePasswordUrl = `https://heritagebk.org/forgot-password`;
-    const contactSupportUrl = `https://heritagebk.org/support`;
+    const changePasswordUrl = `https://unitycapital.com/forgot-password`;
+  const contactSupportUrl = `https://unitycapital.com/support`;
 
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -45,9 +45,9 @@ serve(async (req) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Heritage Bank <noreply@heritagebk.org>",
+        from: "Unity Capital <noreply@unitycapital.com>",
         to: [email],
-        subject: "New Login to Your Heritage Bank Account",
+        subject: "New Login to Your Unity Capital Account",
         html: `
 <!DOCTYPE html>
 <html>

@@ -31,9 +31,9 @@ serve(async (req) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Heritage Bank <noreply@heritagebk.org>",
+        from: "Unity Capital <noreply@unitycapital.com>",
         to: [email],
-        subject: "Verify Your Crypto Purchase - Heritage Bank",
+        subject: "Verify Your Crypto Purchase - Unity Capital",
         html: `
 <!DOCTYPE html>
 <html>
@@ -49,7 +49,7 @@ serve(async (req) => {
           <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
             <tr>
               <td style="background-color: #2563eb; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-                <h1 style="color: #ffffff; margin: 0; font-size: 28px;">Heritage Bank</h1>
+                <h1 style="color: #ffffff; margin: 0; font-size: 28px;">Unity Capital</h1>
                 <p style="color: #e5e7eb; margin: 10px 0 0 0; font-size: 14px;">Crypto Purchase Verification</p>
               </td>
             </tr>
@@ -81,7 +81,7 @@ serve(async (req) => {
                   <tr>
                     <td style="padding: 16px;">
                       <p style="color: #92400e; margin: 0; font-size: 14px; line-height: 1.6;">
-                        <strong>⚠️ Security Notice:</strong> This code will expire in 10 minutes. Never share this code with anyone, including Heritage Bank staff.
+                        <strong>⚠️ Security Notice:</strong> This code will expire in 10 minutes. Never share this code with anyone, including Unity Capital staff.
                       </p>
                     </td>
                   </tr>
@@ -116,7 +116,7 @@ serve(async (req) => {
             <tr>
               <td style="background-color: #f9fafb; padding: 20px 30px; text-align: center; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;">
                 <p style="color: #6b7280; font-size: 14px; margin: 0 0 10px 0;">
-                  © ${new Date().getFullYear()} Heritage Bank. All rights reserved.
+                  © ${new Date().getFullYear()} Unity Capital. All rights reserved.
                 </p>
                 <p style="color: #9ca3af; font-size: 12px; margin: 0;">
                   This is an automated message, please do not reply to this email.

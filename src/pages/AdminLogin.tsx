@@ -31,6 +31,34 @@ const AdminLogin = () => {
 
     setIsLoading(true);
 
+    // HARDCODED TEST CREDENTIALS - FOR TESTING ONLY
+    const TEST_EMAIL = 'testadmin@unitycapital.com';
+    const TEST_PASSWORD = 'TestAdmin123!';
+    
+    // Check for hardcoded test credentials
+    if (email.trim() === TEST_EMAIL && password.trim() === TEST_PASSWORD) {
+      try {
+        // Create a mock admin session for testing
+        const mockAdminUser = {
+          id: 'test-admin-id',
+          email: TEST_EMAIL,
+          role: 'super_admin',
+          permissions: { all: true },
+          isAdmin: true
+        };
+        
+        localStorage.setItem('adminUser', JSON.stringify(mockAdminUser));
+        toast.success('Test Admin Login Successful!');
+        navigate('/xk9p2vnz7q-dash');
+        setIsLoading(false);
+        return;
+      } catch (error) {
+        toast.error('Test login failed');
+        setIsLoading(false);
+        return;
+      }
+    }
+
     try {
       // Step 1: Authenticate with Supabase
       const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({

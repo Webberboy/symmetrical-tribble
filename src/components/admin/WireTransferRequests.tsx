@@ -314,12 +314,13 @@ const WireTransferRequests: React.FC<WireTransferRequestsProps> = ({ user, onUpd
       if (accountsError) {
       } else if (accounts && accounts.length > 0) {
         const account = accounts[0];
-        const newBalance = account.balance - transfer.total_amount;
+        const currentBalance = account.checking_balance || account.balance || 0;
+        const newBalance = currentBalance - transfer.total_amount;
         
         const { error: balanceError } = await supabase
           .from('accounts')
           .update({ 
-            balance: newBalance,
+            checking_balance: newBalance,
             updated_at: new Date().toISOString()
           })
           .eq('id', account.id);
@@ -374,12 +375,13 @@ const WireTransferRequests: React.FC<WireTransferRequestsProps> = ({ user, onUpd
       if (accountsError) {
       } else if (accounts && accounts.length > 0) {
         const account = accounts[0];
-        const newBalance = account.balance + transfer.total_amount;
+        const currentBalance = account.checking_balance || account.balance || 0;
+        const newBalance = currentBalance + transfer.total_amount;
         
         const { error: balanceError } = await supabase
           .from('accounts')
           .update({ 
-            balance: newBalance,
+            checking_balance: newBalance,
             updated_at: new Date().toISOString()
           })
           .eq('id', account.id);

@@ -570,7 +570,7 @@ const InternalTransfer = () => {
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Enter amount</h2>
           {selectedFromAccount && (
             <p className="text-sm text-gray-600">
-              From {selectedFromAccount.name} • Available {formatCurrency(
+              From {selectedFromAccount.name} • Available {formatBalance(
                 selectedFromAccount.account_type === 'checking' 
                   ? (selectedFromAccount.checking_balance || 0)
                   : (selectedFromAccount.savings_balance || 0)

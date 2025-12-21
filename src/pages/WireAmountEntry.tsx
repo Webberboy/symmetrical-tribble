@@ -12,6 +12,9 @@ interface Account {
   type: string;
   balance: number;
   accountNumber: string;
+  account_type?: string;
+  checking_balance?: number;
+  savings_balance?: number;
 }
 
 const WireAmountEntry: React.FC = () => {
@@ -71,9 +74,7 @@ const WireAmountEntry: React.FC = () => {
 
   const handleNext = async () => {
     const enteredAmount = parseFloat(amount);
-    const accountBalance = selectedAccount?.account_type === 'checking' 
-      ? (selectedAccount?.checking_balance || 0)
-      : (selectedAccount?.savings_balance || 0);
+    const accountBalance = selectedAccount?.balance || 0;
     
     if (!amount || enteredAmount <= 0) {
       return;
@@ -142,9 +143,7 @@ const WireAmountEntry: React.FC = () => {
 
   const isValidAmount = () => {
     const enteredAmount = parseFloat(amount);
-    const accountBalance = selectedAccount?.account_type === 'checking' 
-      ? (selectedAccount?.checking_balance || 0)
-      : (selectedAccount?.savings_balance || 0);
+    const accountBalance = selectedAccount?.balance || 0;
     const wireTransferFee = 5.00;
     const totalRequired = enteredAmount + wireTransferFee;
     
@@ -182,11 +181,7 @@ const WireAmountEntry: React.FC = () => {
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Enter amount</h2>
             {selectedAccount && (
               <p className="text-sm text-gray-600">
-                From {selectedAccount.name} • Available {formatBalance(
-                  selectedAccount.account_type === 'checking' 
-                    ? (selectedAccount.checking_balance || 0)
-                    : (selectedAccount.savings_balance || 0)
-                )}
+                From {selectedAccount.name} • Available {formatBalance(selectedAccount.balance || 0)}
               </p>
             )}
           </div>
@@ -258,11 +253,7 @@ const WireAmountEntry: React.FC = () => {
             </p>
             <p className="text-xs text-red-600">
               Amount + $5 fee = ${(parseFloat(amount) + 5).toFixed(2)}<br />
-              Available balance: {selectedAccount ? formatBalance(
-                selectedAccount.account_type === 'checking' 
-                  ? (selectedAccount.checking_balance || 0)
-                  : (selectedAccount.savings_balance || 0)
-              ) : '$0.00'}
+              Available balance: {selectedAccount ? formatBalance(selectedAccount.balance || 0) : '$0.00'}
             </p>
           </div>
         )}

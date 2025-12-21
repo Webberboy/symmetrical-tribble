@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { EyeIcon as Eye, EyeSlashIcon as EyeOff, ClipboardDocumentIcon as Copy } from '@heroicons/react/24/outline';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { toast as sonnerToast } from 'sonner';
+import { getAuthenticatedUser } from '@/lib/authUtils';
 
 interface Account {
   id: number;
@@ -26,6 +28,7 @@ const AccountBalances: React.FC = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -36,42 +39,33 @@ const AccountBalances: React.FC = () => {
 
   const fetchAccountData = async () => {
     try {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      setLoading(true);
+      setError(null);
+
+      // Check if user is authenticated using the utility function
+      const user = await getAuthenticatedUser(true, navigate);
       if (!user) {
-        toast({
-          title: "Error",
-          description: "User not authenticated",
-          variant: "destructive"
-        });
-        setIsLoading(false);
+        // The utility function will handle redirect and toast
         return;
       }
 
-      // Fetch accounts from accounts table
-      const { data: accountsData, error } = await supabase
+      const { data: accountsData, error: accountsError } = await supabase
         .from('accounts')
         .select('*')
         .eq('user_id', user.id)
         .in('account_type', ['checking', 'savings'])
         .order('account_type', { ascending: true });
 
-      if (error) {
-        console.error('Error fetching accounts:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load account information",
-          variant: "destructive"
-        });
-        setIsLoading(false);
+      if (accountsError) {
+        console.error('Error fetching accounts:', accountsError);
+        setError('Failed to load account data');
         return;
       }
 
       if (!accountsData || accountsData.length === 0) {
         // No accounts found - this shouldn't happen but handle gracefully
         setAccounts([]);
-        setIsLoading(false);
+        setLoading(false);
         return;
       }
 
@@ -106,13 +100,9 @@ const AccountBalances: React.FC = () => {
       setAccounts(userAccounts);
     } catch (error) {
       console.error('Error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load accounts",
-        variant: "destructive"
-      });
+      setError('Failed to load account data');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 

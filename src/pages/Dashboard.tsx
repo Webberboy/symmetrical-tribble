@@ -7,6 +7,7 @@ import GlobalNotifications from "@/components/GlobalNotifications";
 import Header from "@/components/Header";
 import BottomNavigation from "@/components/BottomNavigation";
 import { useWhiteLabelMeta } from "@/hooks/useWhiteLabelMeta";
+import { validateSession } from "@/lib/authUtils";
 
 const Dashboard = () => {
   useWhiteLabelMeta("Dashboard");
@@ -15,21 +16,39 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const userData = localStorage.getItem("user");
-    if (!userData) {
-      navigate("/auth");
-      return;
-    }
+    const validateAndLoadUser = async () => {
+      try {
+        // First check localStorage for user data
+        const userData = localStorage.getItem("user");
+        if (!userData) {
+          navigate("/auth");
+          return;
+        }
 
-    try {
-      const parsedUser = JSON.parse(userData);
-      setUser(parsedUser);
-    } catch (error) {
-      console.error("Error parsing user data:", error);
-      navigate("/auth");
-    } finally {
-      setLoading(false);
-    }
+        // Validate Supabase session using utility function
+        const isValidSession = await validateSession();
+        
+        if (!isValidSession) {
+          // Session is invalid or expired, clear localStorage and redirect
+          localStorage.removeItem("user");
+          navigate("/auth");
+          return;
+        }
+
+        // Parse and set user data
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+      } catch (error) {
+        console.error("Error validating session:", error);
+        // Clear localStorage on any error and redirect
+        localStorage.removeItem("user");
+        navigate("/auth");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    validateAndLoadUser();
   }, [navigate]);
 
   if (loading) {

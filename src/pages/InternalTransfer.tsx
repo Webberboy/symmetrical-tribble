@@ -167,9 +167,7 @@ const InternalTransfer = () => {
 
   const handleAmountNext = () => {
     const fromAccountData = getSelectedAccount(fromAccount);
-    const accountBalance = fromAccountData?.account_type === 'checking' 
-      ? (fromAccountData?.checking_balance || 0)
-      : (fromAccountData?.savings_balance || 0);
+    const accountBalance = fromAccountData?.balance || 0;
     
     if (amount && parseFloat(amount) > 0 && parseFloat(amount) <= accountBalance) {
       setCurrentStep('confirmation');
@@ -555,9 +553,7 @@ const InternalTransfer = () => {
     const selectedFromAccount = getSelectedAccount(fromAccount);
     const isValidAmount = () => {
       const enteredAmount = parseFloat(amount);
-      const accountBalance = selectedFromAccount?.account_type === 'checking' 
-        ? (selectedFromAccount?.checking_balance || 0)
-        : (selectedFromAccount?.savings_balance || 0);
+      const accountBalance = selectedFromAccount?.balance || 0;
       
       return amount && 
              enteredAmount > 0 && 
@@ -570,11 +566,7 @@ const InternalTransfer = () => {
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Enter amount</h2>
           {selectedFromAccount && (
             <p className="text-sm text-gray-600">
-              From {selectedFromAccount.name} • Available {formatBalance(
-                selectedFromAccount.account_type === 'checking' 
-                  ? (selectedFromAccount.checking_balance || 0)
-                  : (selectedFromAccount.savings_balance || 0)
-              )}
+              From {selectedFromAccount.name} • Available {formatBalance(selectedFromAccount.balance)}
             </p>
           )}
         </div>
@@ -635,16 +627,10 @@ const InternalTransfer = () => {
         </div>
 
         {/* Validation Message */}
-        {amount && parseFloat(amount) > (selectedFromAccount?.account_type === 'checking' 
-          ? (selectedFromAccount?.checking_balance || 0)
-          : (selectedFromAccount?.savings_balance || 0)) && (
+        {amount && parseFloat(amount) > (selectedFromAccount?.balance || 0) && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-sm text-red-700">
-              Insufficient funds. Maximum available: {selectedFromAccount ? formatBalance(
-                selectedFromAccount.account_type === 'checking' 
-                  ? (selectedFromAccount.checking_balance || 0)
-                  : (selectedFromAccount.savings_balance || 0)
-              ) : '$0.00'}
+              Insufficient funds. Maximum available: {selectedFromAccount ? formatBalance(selectedFromAccount.balance) : '$0.00'}
             </p>
           </div>
         )}

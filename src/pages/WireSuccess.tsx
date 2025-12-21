@@ -84,6 +84,7 @@ const WireSuccess: React.FC = () => {
             user_id: user.id,
             transaction_id: transactionData.id,
             amount: parseFloat(authData.amount),
+            fees: authData.wireTransferFee,
             recipient_name: authData.recipientData.recipientName,
             recipient_account: authData.accountInfo.recipientAccountNumber,
             recipient_routing: authData.accountInfo.recipientRoutingNumber || authData.recipientData.routingNumber,

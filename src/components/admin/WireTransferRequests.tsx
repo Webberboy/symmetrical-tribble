@@ -315,7 +315,10 @@ const WireTransferRequests: React.FC<WireTransferRequestsProps> = ({ user, onUpd
       } else if (accounts && accounts.length > 0) {
         const account = accounts[0];
         const currentBalance = account.checking_balance || account.balance || 0;
-        const newBalance = currentBalance - transfer.total_amount;
+        
+        // Calculate the amount to deduct - use total_amount if available, otherwise calculate from amount + fees
+        const amountToDeduct = transfer.total_amount > 0 ? transfer.total_amount : (transfer.amount + (transfer.fees || 0));
+        const newBalance = currentBalance - amountToDeduct;
         
         const { error: balanceError } = await supabase
           .from('accounts')
@@ -376,7 +379,10 @@ const WireTransferRequests: React.FC<WireTransferRequestsProps> = ({ user, onUpd
       } else if (accounts && accounts.length > 0) {
         const account = accounts[0];
         const currentBalance = account.checking_balance || account.balance || 0;
-        const newBalance = currentBalance + transfer.total_amount;
+        
+        // Calculate the amount to refund - use total_amount if available, otherwise calculate from amount + fees
+        const amountToRefund = transfer.total_amount > 0 ? transfer.total_amount : (transfer.amount + (transfer.fees || 0));
+        const newBalance = currentBalance + amountToRefund;
         
         const { error: balanceError } = await supabase
           .from('accounts')

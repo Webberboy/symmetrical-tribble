@@ -140,11 +140,29 @@ const CreateCryptoWallet = () => {
 
   const createWallet = async () => {
     try {
+      console.log('🚀 Starting wallet creation process...');
       setIsCreating(true);
       
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      console.log('👤 Auth check result:', { user: user?.id, authError });
+      
+      if (!user) {
+        console.log('❌ No user found, returning early');
+        toast({
+          title: "Error",
+          description: "User not authenticated",
+          variant: "destructive"
+        });
+        return;
+      }
 
+      console.log('💾 Attempting to store wallet metadata...');
+      console.log('📋 Wallet metadata data:', {
+        user_id: user.id,
+        wallet_name: walletName || 'My Wallet',
+        recovery_phrase_length: recoveryPhrase.length
+      });
+      
       // Store wallet metadata (encrypted in production)
       const { error: walletError } = await supabase
         .from('crypto_wallet_metadata')
@@ -155,8 +173,13 @@ const CreateCryptoWallet = () => {
           created_at: new Date().toISOString()
         });
 
-      if (walletError) throw walletError;
+      console.log('📊 Wallet metadata result:', { walletError });
+      if (walletError) {
+        console.log('❌ Wallet metadata error details:', walletError.message);
+        throw walletError;
+      }
 
+      console.log('💰 Creating wallets for BTC, ETH, and ADA...');
       // Create wallets for BTC, ETH, and ADA with 0 balance
       const wallets = [
         { user_id: user.id, asset_id: 'btc', balance: 0 },
@@ -164,29 +187,43 @@ const CreateCryptoWallet = () => {
         { user_id: user.id, asset_id: 'ada', balance: 0 }
       ];
 
-      const { error } = await supabase
+      console.log('📤 Sending wallet data to crypto_wallets table:', wallets);
+      const { error, data } = await supabase
         .from('crypto_wallets')
         .insert(wallets);
 
-      if (error) throw error;
+      console.log('📊 Crypto wallets result:', { error, data });
+      if (error) {
+        console.log('❌ Crypto wallets error details:', error.message);
+        throw error;
+      }
 
+      console.log('✅ Wallet creation successful!');
       toast({
         title: "Success!",
         description: "Your crypto wallet has been created successfully",
       });
 
+      console.log('🔄 Navigating to crypto page in 2 seconds...');
       setTimeout(() => {
+        console.log('🚀 Navigating to /crypto...');
         navigate('/crypto');
       }, 2000);
       
-    } catch (error) {
+    } catch (error: any) {
+      console.log('💥 Wallet creation failed:', error);
+      console.log('📋 Error details:', error.message || error);
+      console.log('🔍 Error code:', error.code);
+      console.log('🔍 Error hint:', error.hint);
+      console.log('🔍 Error details:', error.details);
       toast({
         title: "Error",
-        description: "Failed to create crypto wallet. Please try again.",
+        description: "Failed to create crypto wallet. Please try again later.",
         variant: "destructive"
       });
     } finally {
       setIsCreating(false);
+      console.log('🏁 Wallet creation process completed');
     }
   };
 

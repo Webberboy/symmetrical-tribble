@@ -54,15 +54,20 @@ const Crypto = () => {
   const [walletName, setWalletName] = useState<string>('My Wallet');
 
   useEffect(() => {
+    console.log('🎯 Crypto page useEffect triggered - starting data fetch');
     fetchCryptoData();
   }, []);
 
   const fetchCryptoData = async () => {
     try {
+      console.log('🔄 Starting crypto data fetch...');
+      
       // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      console.log('👤 Auth check result:', { user: user?.id, authError });
       
       if (!user) {
+        console.log('❌ No user found, redirecting to signin');
         toast({
           title: "Error",
           description: "User not authenticated",
@@ -75,11 +80,14 @@ const Crypto = () => {
       setUserId(user.id);
 
       // Fetch user profile data
-      const { data: profile } = await supabase
+      console.log('👤 Fetching user profile...');
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
+      
+      console.log('📋 Profile result:', { profile, profileError });
 
       if (profile) {
         setUserData({
@@ -90,23 +98,33 @@ const Crypto = () => {
       }
 
       // Fetch user's crypto wallets
+      console.log('💰 Fetching user crypto wallets...');
       const { data: wallets, error: walletsError } = await supabase
         .from('crypto_wallets')
         .select('*')
         .eq('user_id', user.id);
+      
+      console.log('💼 Wallets result:', { wallets, walletsError });
 
-      if (walletsError) throw walletsError;
+      if (walletsError) {
+        console.log('❌ Wallets error details:', walletsError.message);
+        throw walletsError;
+      }
 
       // Check if user has any wallets
       setHasWallet(wallets && wallets.length > 0);
+      console.log('🔍 Has wallet check:', wallets && wallets.length > 0);
 
       // Fetch wallet name from metadata if user has wallets
       if (wallets && wallets.length > 0) {
+        console.log('📝 Fetching wallet metadata...');
         const { data: walletMetadata, error: metadataError } = await supabase
           .from('crypto_wallet_metadata')
           .select('wallet_name')
           .eq('user_id', user.id)
           .single();
+        
+        console.log('📊 Wallet metadata result:', { walletMetadata, metadataError });
 
         if (!metadataError && walletMetadata) {
           setWalletName(walletMetadata.wallet_name || 'My Wallet');
@@ -114,26 +132,41 @@ const Crypto = () => {
       }
 
       // Fetch all crypto assets
+      console.log('🪙 Fetching crypto assets...');
       const { data: assets, error: assetsError} = await supabase
         .from('crypto_assets')
         .select('*');
+      
+      console.log('📊 Assets result:', { assets, assetsError });
 
-      if (assetsError) throw assetsError;
+      if (assetsError) {
+        console.log('❌ Assets error details:', assetsError.message);
+        throw assetsError;
+      }
 
       // Fetch current prices
+      console.log('💵 Fetching crypto prices...');
       const { data: prices, error: pricesError } = await supabase
         .from('crypto_prices')
         .select('*');
+      
+      console.log('💰 Prices result:', { prices, pricesError });
 
-      if (pricesError) throw pricesError;
+      if (pricesError) {
+        console.log('❌ Prices error details:', pricesError.message);
+        throw pricesError;
+      }
 
       // Combine wallet data with assets and prices
+      console.log('🔄 Combining wallet data with assets and prices...');
       const assetsWithPrices: CryptoAsset[] = (wallets || []).map(wallet => {
         const assetInfo = assets?.find(a => a.asset_id === wallet.asset_id);
         const priceData = prices?.find(p => p.asset_id === wallet.asset_id);
         const balance = parseFloat(wallet.balance?.toString() || '0');
         const price = parseFloat(priceData?.price_usd?.toString() || '0');
         const usdValue = balance * price;
+
+        console.log(`📈 Processing ${wallet.asset_id}:`, { balance, price, usdValue });
 
         return {
           id: wallet.asset_id,
@@ -147,17 +180,24 @@ const Crypto = () => {
         };
       });
 
+      console.log('📊 Final crypto assets:', assetsWithPrices);
       setCryptoAssets(assetsWithPrices);
 
       // Fetch transactions
+      console.log('📄 Fetching crypto transactions...');
       const { data: txns, error: txnsError } = await supabase
         .from('crypto_transactions')
         .select('*')
         .eq('user_id', user.id)
         .order('transaction_date', { ascending: false })
         .limit(50);
+      
+      console.log('📋 Transactions result:', { txns, txnsError });
 
-      if (txnsError) throw txnsError;
+      if (txnsError) {
+        console.log('❌ Transactions error details:', txnsError.message);
+        throw txnsError;
+      }
 
       const formattedTransactions: Transaction[] = (txns || []).map(txn => ({
         id: txn.id,
@@ -169,9 +209,14 @@ const Crypto = () => {
         status: txn.status as any
       }));
 
+      console.log('📊 Formatted transactions:', formattedTransactions);
       setTransactions(formattedTransactions);
 
-    } catch (error) {
+      console.log('✅ Crypto data fetch completed successfully!');
+
+    } catch (error: any) {
+      console.log('💥 Crypto data fetch failed:', error);
+      console.log('📋 Error details:', error.message || error);
       toast({
         title: "Error",
         description: "Failed to load crypto data",
@@ -179,6 +224,7 @@ const Crypto = () => {
       });
     } finally {
       setIsLoading(false);
+      console.log('🏁 Crypto data fetch process completed');
     }
   };
 

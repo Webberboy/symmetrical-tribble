@@ -31,6 +31,7 @@ const AccountBalances: React.FC = () => {
   const navigate = useNavigate();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch real account data from Supabase
   useEffect(() => {
@@ -39,7 +40,7 @@ const AccountBalances: React.FC = () => {
 
   const fetchAccountData = async () => {
     try {
-      setLoading(true);
+      setIsLoading(true);
       setError(null);
 
       // Check if user is authenticated using the utility function
@@ -65,7 +66,7 @@ const AccountBalances: React.FC = () => {
       if (!accountsData || accountsData.length === 0) {
         // No accounts found - this shouldn't happen but handle gracefully
         setAccounts([]);
-        setLoading(false);
+        setIsLoading(false);
         return;
       }
 
@@ -102,7 +103,7 @@ const AccountBalances: React.FC = () => {
       console.error('Error:', error);
       setError('Failed to load account data');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 

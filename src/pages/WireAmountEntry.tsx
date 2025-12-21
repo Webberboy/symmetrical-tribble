@@ -71,7 +71,9 @@ const WireAmountEntry: React.FC = () => {
 
   const handleNext = async () => {
     const enteredAmount = parseFloat(amount);
-    const accountBalance = selectedAccount?.balance || 0;
+    const accountBalance = selectedAccount?.account_type === 'checking' 
+      ? (selectedAccount?.checking_balance || 0)
+      : (selectedAccount?.savings_balance || 0);
     
     if (!amount || enteredAmount <= 0) {
       return;
@@ -135,12 +137,14 @@ const WireAmountEntry: React.FC = () => {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 2
-    }).format(amount);
+    }).format(amount || 0);
   };
 
   const isValidAmount = () => {
     const enteredAmount = parseFloat(amount);
-    const accountBalance = selectedAccount?.balance || 0;
+    const accountBalance = selectedAccount?.account_type === 'checking' 
+      ? (selectedAccount?.checking_balance || 0)
+      : (selectedAccount?.savings_balance || 0);
     const wireTransferFee = 5.00;
     const totalRequired = enteredAmount + wireTransferFee;
     
@@ -178,7 +182,11 @@ const WireAmountEntry: React.FC = () => {
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Enter amount</h2>
             {selectedAccount && (
               <p className="text-sm text-gray-600">
-                From {selectedAccount.name} • Available {formatBalance(selectedAccount.balance)}
+                From {selectedAccount.name} • Available {formatBalance(
+                  selectedAccount.account_type === 'checking' 
+                    ? (selectedAccount.checking_balance || 0)
+                    : (selectedAccount.savings_balance || 0)
+                )}
               </p>
             )}
           </div>
@@ -243,17 +251,21 @@ const WireAmountEntry: React.FC = () => {
           </div>
 
           {/* Validation Message */}
-          {amount && parseFloat(amount) > 0 && !isValidAmount() && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-700 font-medium mb-1">
-                Insufficient funds
-              </p>
-              <p className="text-xs text-red-600">
-                Amount + $5 fee = ${(parseFloat(amount) + 5).toFixed(2)}<br />
-                Available balance: {selectedAccount ? formatBalance(selectedAccount.balance) : '$0.00'}
-              </p>
-            </div>
-          )}
+        {amount && parseFloat(amount) > 0 && !isValidAmount() && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-700 font-medium mb-1">
+              Insufficient funds
+            </p>
+            <p className="text-xs text-red-600">
+              Amount + $5 fee = ${(parseFloat(amount) + 5).toFixed(2)}<br />
+              Available balance: {selectedAccount ? formatBalance(
+                selectedAccount.account_type === 'checking' 
+                  ? (selectedAccount.checking_balance || 0)
+                  : (selectedAccount.savings_balance || 0)
+              ) : '$0.00'}
+            </p>
+          </div>
+        )}
 
           {/* Info Message */}
           <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 mb-8">

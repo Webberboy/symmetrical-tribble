@@ -114,8 +114,8 @@ const InternalTransfer = () => {
           name: account.account_type === 'checking' ? 'My Checking' : 'My Savings',
           type: account.account_type === 'checking' ? 'Checking Account' : 'Savings Account',
           balance: account.account_type === 'checking' 
-            ? (account.checking_balance || account.balance || 0.00)
-            : (account.savings_balance || account.balance || 0.00),
+            ? (account.checking_balance || 0.00)
+            : (account.savings_balance || 0.00),
           accountNumber: `****${lastFourDigits}` // Show last 4 digits
         };
       });
@@ -167,7 +167,11 @@ const InternalTransfer = () => {
 
   const handleAmountNext = () => {
     const fromAccountData = getSelectedAccount(fromAccount);
-    if (amount && parseFloat(amount) > 0 && parseFloat(amount) <= (fromAccountData?.balance || 0)) {
+    const accountBalance = fromAccountData?.account_type === 'checking' 
+      ? (fromAccountData?.checking_balance || 0)
+      : (fromAccountData?.savings_balance || 0);
+    
+    if (amount && parseFloat(amount) > 0 && parseFloat(amount) <= accountBalance) {
       setCurrentStep('confirmation');
     }
   };
@@ -549,15 +553,28 @@ const InternalTransfer = () => {
 
   const renderAmountEntry = () => {
     const selectedFromAccount = getSelectedAccount(fromAccount);
-    const isValidAmount = amount && parseFloat(amount) > 0 && parseFloat(amount) <= (selectedFromAccount?.balance || 0);
+    const isValidAmount = () => {
+      const enteredAmount = parseFloat(amount);
+      const accountBalance = selectedFromAccount?.account_type === 'checking' 
+        ? (selectedFromAccount?.checking_balance || 0)
+        : (selectedFromAccount?.savings_balance || 0);
+      
+      return amount && 
+             enteredAmount > 0 && 
+             enteredAmount <= accountBalance;
+    };
 
     return (
-      <div className="max-w-md mx-auto">
-        <div className="mb-6">
+      <div className="space-y-6">
+        <div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Enter amount</h2>
           {selectedFromAccount && (
             <p className="text-sm text-gray-600">
-              From {selectedFromAccount.name} • Available {formatBalance(selectedFromAccount.balance)}
+              From {selectedFromAccount.name} • Available {formatCurrency(
+                selectedFromAccount.account_type === 'checking' 
+                  ? (selectedFromAccount.checking_balance || 0)
+                  : (selectedFromAccount.savings_balance || 0)
+              )}
             </p>
           )}
         </div>
@@ -618,10 +635,16 @@ const InternalTransfer = () => {
         </div>
 
         {/* Validation Message */}
-        {amount && parseFloat(amount) > (selectedFromAccount?.balance || 0) && (
+        {amount && parseFloat(amount) > (selectedFromAccount?.account_type === 'checking' 
+          ? (selectedFromAccount?.checking_balance || 0)
+          : (selectedFromAccount?.savings_balance || 0)) && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-sm text-red-700">
-              Insufficient funds. Maximum available: {selectedFromAccount ? formatBalance(selectedFromAccount.balance) : '$0.00'}
+              Insufficient funds. Maximum available: {selectedFromAccount ? formatBalance(
+                selectedFromAccount.account_type === 'checking' 
+                  ? (selectedFromAccount.checking_balance || 0)
+                  : (selectedFromAccount.savings_balance || 0)
+              ) : '$0.00'}
             </p>
           </div>
         )}

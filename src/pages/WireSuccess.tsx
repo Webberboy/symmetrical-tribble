@@ -74,13 +74,15 @@ const WireSuccess: React.FC = () => {
         if (txnError) {
           toast.error('Failed to record transaction');
           console.error('Transaction error:', txnError);
+          return;
         }
 
-        // Create wire transfer record
+        // Create wire transfer record with transaction_id
         const { error: wireError } = await supabase
           .from('wire_transfers')
           .insert({
             user_id: user.id,
+            transaction_id: transactionData.id,
             amount: parseFloat(authData.amount),
             recipient_name: authData.recipientData.recipientName,
             recipient_account: authData.accountInfo.recipientAccountNumber,
@@ -91,6 +93,7 @@ const WireSuccess: React.FC = () => {
 
         if (wireError) {
           toast.error('Failed to record wire transfer');
+          console.error('Wire transfer error:', wireError);
         }
 
         // Save confirmation for future reference

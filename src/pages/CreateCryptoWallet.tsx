@@ -182,9 +182,9 @@ const CreateCryptoWallet = () => {
       console.log('💰 Creating wallets for BTC, ETH, and ADA...');
       // Create wallets for BTC, ETH, and ADA with 0 balance
       const wallets = [
-        { user_id: user.id, asset_id: 'btc', balance: 0 },
-        { user_id: user.id, asset_id: 'eth', balance: 0 },
-        { user_id: user.id, asset_id: 'ada', balance: 0 }
+        { user_id: user.id, symbol: 'BTC', balance: 0 },
+        { user_id: user.id, symbol: 'ETH', balance: 0 },
+        { user_id: user.id, symbol: 'ADA', balance: 0 }
       ];
 
       console.log('📤 Sending wallet data to crypto_wallets table:', wallets);

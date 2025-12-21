@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Signup Flow</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Test Signup Flow</h1>
+    <p>This will test the complete signup flow including welcome email.</p>
+    
+    <form id="signupForm">
+        <div>
+            <label for="email">Email:</label>
+            <input type="email" id="email" required>
+        </div>
+        <div>
+            <label for="password">Password:</label>
+            <input type="password" id="password" required>
+        </div>
+        <div>
+            <label for="firstName">First Name:</label>
+            <input type="text" id="firstName" required>
+        </div>
+        <div>
+            <label for="lastName">Last Name:</label>
+            <input type="text" id="lastName" required>
+        </div>
+        <div>
+            <label for="phone">Phone:</label>
+            <input type="tel" id="phone" required>
+        </div>
+        <button type="submit">Sign Up</button>
+    </form>
+    
+    <div id="status"></div>
+
+    <script>
+        const supabaseUrl = 'https://jovrfejbutfrzvclchuf.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvdnJmZWpidXRmcnp2Y2xjaHVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU2NzA1MzQsImV4cCI6MjA1MTI0NjUzNH0.XtIrym0NQr6i-D5E_-0Rk6F2pTj5XWztdQJz1lC9w4c';
+        
+        const testSupabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const statusDiv = document.getElementById('status');
+            
+            try {
+                statusDiv.innerHTML = '<p>Creating user...</p>';
+                
+                const formData = {
+                    email: document.getElementById('email').value,
+                    password: document.getElementById('password').value,
+                    firstName: document.getElementById('firstName').value,
+                    lastName: document.getElementById('lastName').value,
+                    phone: document.getElementById('phone').value
+                };
+
+                // Sign up the user
+                const { data: authData, error: authError } = await testSupabase.auth.signUp({
+                    email: formData.email,
+                    password: formData.password
+                });
+
+                if (authError) {
+                    throw new Error(`Auth signup failed: ${authError.message}`);
+                }
+
+                statusDiv.innerHTML = '<p>User created. Creating profile...</p>';
+
+                // Create profile
+                const { data: profileData, error: profileError } = await testSupabase
+                    .from('profiles')
+                    .insert([{
+                        id: authData.user.id,
+                        email: formData.email,
+                        first_name: formData.firstName,
+                        last_name: formData.lastName,
+                        full_name: `${formData.firstName} ${formData.lastName}`,
+                        phone: formData.phone,
+                        role: 'customer'
+                    }])
+                    .select()
+                    .single();
+
+                if (profileError) {
+                    throw new Error(`Profile creation failed: ${profileError.message}`);
+                }
+
+                statusDiv.innerHTML = '<p>Profile created. Setting up accounts...</p>';
+
+                // Wait a moment for the completeUserSignup function to run
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                statusDiv.innerHTML = '<p style="color: green;">✅ Signup completed! Check your email for the welcome message.</p>';
+                
+                // Clear form
+                document.getElementById('signupForm').reset();
+                
+            } catch (error) {
+                statusDiv.innerHTML = `<p style="color: red;">❌ Error: ${error.message}</p>`;
+                console.error('Signup error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

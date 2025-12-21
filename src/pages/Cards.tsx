@@ -331,7 +331,7 @@ const Cards = () => {
     try {
       const { data: accountsData, error } = await supabase
         .from('accounts')
-        .select('*')
+        .select('id, account_name, account_number, account_type, checking_balance, savings_balance, balance')
         .eq('user_id', userId)
         .in('account_type', ['checking', 'savings'])
         .order('account_type', { ascending: true });
@@ -367,16 +367,25 @@ const Cards = () => {
         return;
       }
 
+      // Get the correct balance based on account type
+      const accountBalance = account.account_type === 'checking' 
+        ? account.checking_balance || account.balance || 0 
+        : account.savings_balance || account.balance || 0;
+
       // Check if account has sufficient balance
-      if (account.balance < amount) {
-        toast.error(`Insufficient balance in ${account.account_type} account. Available: $${account.balance.toFixed(2)}`);
+      if (accountBalance < amount) {
+        toast.error(`Insufficient balance in ${account.account_type} account. Available: $${accountBalance.toFixed(2)}`);
         return;
       }
 
-      // Deduct from account
+      // Deduct from account - update the correct balance field based on account type
+      const balanceUpdate = account.account_type === 'checking'
+        ? { checking_balance: accountBalance - amount }
+        : { savings_balance: accountBalance - amount };
+
       const { error: accountError } = await supabase
         .from('accounts')
-        .update({ balance: account.balance - amount })
+        .update(balanceUpdate)
         .eq('id', selectedAccount);
 
       if (accountError) {
@@ -391,10 +400,14 @@ const Cards = () => {
         .eq('id', cardData.id);
 
       if (cardError) {
-        // Rollback account deduction
+        // Rollback account deduction - restore the correct balance field
+        const rollbackUpdate = account.account_type === 'checking'
+          ? { checking_balance: accountBalance }
+          : { savings_balance: accountBalance };
+
         await supabase
           .from('accounts')
-          .update({ balance: account.balance })
+          .update(rollbackUpdate)
           .eq('id', selectedAccount);
         toast.error('Failed to add money to card');
         return;
@@ -995,7 +1008,9 @@ const Cards = () => {
                             </div>
                             <div className="text-right">
                               <p className="font-semibold text-gray-900">
-                                ${account.balance.toFixed(2)}
+                                ${(account.account_type === 'checking' 
+                                  ? account.checking_balance || account.balance || 0 
+                                  : account.savings_balance || account.balance || 0).toFixed(2)}
                               </p>
                               <p className="text-xs text-gray-500">Available</p>
                             </div>
@@ -1023,17 +1038,25 @@ const Cards = () => {
                   </div>
                   {selectedAccount && transferAmount && (
                     <p className="text-sm text-gray-600 flex items-center gap-2">
-                      {parseFloat(transferAmount) > (accounts.find(a => a.id === selectedAccount)?.balance || 0) ? (
-                        <>
-                          <AlertTriangle className="h-4 w-4 text-red-600" />
-                          <span className="text-red-600">Insufficient balance</span>
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                          <span className="text-green-600">Sufficient balance</span>
-                        </>
-                      )}
+                      {(() => {
+                        const selectedAcc = accounts.find(a => a.id === selectedAccount);
+                        const accountBalance = selectedAcc 
+                          ? (selectedAcc.account_type === 'checking' 
+                            ? selectedAcc.checking_balance || selectedAcc.balance || 0 
+                            : selectedAcc.savings_balance || selectedAcc.balance || 0)
+                          : 0;
+                        return parseFloat(transferAmount) > accountBalance ? (
+                          <>
+                            <AlertTriangle className="h-4 w-4 text-red-600" />
+                            <span className="text-red-600">Insufficient balance</span>
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span className="text-green-600">Sufficient balance</span>
+                          </>
+                        );
+                      })()}
                     </p>
                   )}
                 </div>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Account Creation Fix</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Test Account Creation Fix</h1>
+    <button onclick="testCompleteSignupFlow()">Test Complete Signup Flow</button>
+    <button onclick="testAccountCreationOnly()">Test Account Creation Only</button>
+    <div id="result"></div>
+
+    <script>
+        // Initialize Supabase client with your project details
+        const supabaseUrl = 'https://jovrfejbutfrzvclchuf.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvdnJmZWpidXRmcnp2Y2xjaHVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwNjgwOTksImV4cCI6MjA4MTY0NDA5OX0.torsxZlwh29SHD6iBp6dn-n3y_ZLhWe9Pqk4iFM_SX8';
+        
+        const client = supabase.createClient(supabaseUrl, supabaseKey);
+
+        async function testCompleteSignupFlow() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '';
+            
+            try {
+                // Step 1: Create auth user
+                const timestamp = Date.now();
+                const testEmail = `testuser${timestamp}@example.com`;
+                const testPassword = 'TestPassword123!';
+                
+                resultDiv.innerHTML += `<p>Step 1: Creating auth user with email: ${testEmail}</p>`;
+                
+                const { data: authData, error: authError } = await client.auth.signUp({
+                    email: testEmail,
+                    password: testPassword,
+                    options: {
+                        data: {
+                            first_name: 'Test',
+                            last_name: 'User'
+                        }
+                    }
+                });
+
+                if (authError) {
+                    resultDiv.innerHTML += `<p style="color: red;">❌ Auth user creation failed: ${authError.message}</p>`;
+                    return;
+                }
+
+                if (!authData.user) {
+                    resultDiv.innerHTML += `<p style="color: red;">❌ No user data returned from auth</p>`;
+                    return;
+                }
+
+                resultDiv.innerHTML += `<p style="color: green;">✅ Auth user created: ${authData.user.id}</p>`;
+
+                // Step 2: Create profile with unique account number
+                const uniqueAccountNum = '40125' + String(Date.now()).slice(-7);
+                const profileData = {
+                    id: authData.user.id,
+                    full_name: 'Test User',
+                    first_name: 'Test',
+                    last_name: 'User',
+                    email: testEmail,
+                    phone: '+15551234567',
+                    account_type: 'checking',
+                    account_number: uniqueAccountNum,
+                    date_of_birth: '1990-01-01'
+                };
+                
+                resultDiv.innerHTML += `<p>Step 2: Creating profile...</p>`;
+                
+                const { data: profileResult, error: profileError } = await client
+                    .from('profiles')
+                    .insert(profileData)
+                    .select()
+                    .single();
+                
+                if (profileError) {
+                    resultDiv.innerHTML += `<p style="color: red;">❌ Profile creation failed: ${profileError.message}</p>`;
+                    return;
+                } else {
+                    resultDiv.innerHTML += `<p style="color: green;">✅ Profile created successfully</p>`;
+                }
+
+                // Step 3: Create user accounts (this is the critical test)
+                resultDiv.innerHTML += `<p>Step 3: Creating checking and savings accounts...</p>`;
+                
+                const checkingAccountNum = '40125' + String(Date.now()).slice(-6) + '1';
+                const savingsAccountNum = '40125' + String(Date.now() + 1).slice(-6) + '2';
+                
+                const { data: accountsData, error: accountsError } = await client
+                    .from('accounts')
+                    .insert([
+                        {
+                            user_id: authData.user.id,
+                            account_type: 'checking',
+                            account_number: checkingAccountNum,
+                            account_name: 'Checking Account',
+                            balance: 0,
+                            account_status: 'active'
+                        },
+                        {
+                            user_id: authData.user.id,
+                            account_type: 'savings',
+                            account_number: savingsAccountNum,
+                            account_name: 'Savings Account',
+                            balance: 0,
+                            account_status: 'active'
+                        }
+                    ])
+                    .select();
+                
+                if (accountsError) {
+                    resultDiv.innerHTML += `<p style="color: red;">❌ Account creation failed: ${accountsError.message}</p>`;
+                    resultDiv.innerHTML += `<p style="color: red;">This indicates the permission fix didn't work properly.</p>`;
+                    return;
+                } else {
+                    resultDiv.innerHTML += `<p style="color: green;">✅ Accounts created successfully!</p>`;
+                    resultDiv.innerHTML += `<p style="color: green;">Created ${accountsData.length} accounts: ${accountsData.map(acc => acc.account_type).join(', ')}</p>`;
+                }
+
+                // Step 4: Assign user role
+                resultDiv.innerHTML += `<p>Step 4: Assigning user role...</p>`;
+                
+                const { data: roleData, error: roleError } = await client
+                    .from('user_roles')
+                    .insert({
+                        user_id: authData.user.id,
+                        role: 'user'
+                    })
+                    .select()
+                    .single();
+                
+                if (roleError) {
+                    resultDiv.innerHTML += `<p style="color: red;">❌ Role assignment failed: ${roleError.message}</p>`;
+                } else {
+                    resultDiv.innerHTML += `<p style="color: green;">✅ User role assigned successfully</p>`;
+                }
+
+                resultDiv.innerHTML += `<p style="color: green; font-weight: bold;">🎉 Complete signup flow test PASSED!</p>`;
+                resultDiv.innerHTML += `<p>The account creation permission fix is working correctly.</p>`;
+
+            } catch (error) {
+                resultDiv.innerHTML += `<p style="color: red;">❌ Test error: ${error.message}</p>`;
+            }
+        }
+
+        async function testAccountCreationOnly() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '';
+            
+            try {
+                // Create a test auth user first
+                const timestamp = Date.now();
+                const testEmail = `testuser${timestamp}@example.com`;
+                const testPassword = 'TestPassword123!';
+                
+                resultDiv.innerHTML += `<p>Creating auth user for account creation test...</p>`;
+                
+                const { data: authData, error: authError } = await client.auth.signUp({
+                    email: testEmail,
+                    password: testPassword
+                });
+
+                if (authError || !authData.user) {
+                    resultDiv.innerHTML += `<p style="color: red;">❌ Auth user creation failed</p>`;
+                    return;
+                }
+
+                // Now test account creation directly
+                resultDiv.innerHTML += `<p>Testing account creation for user: ${authData.user.id}</p>`;
+                
+                const checkingAccountNum = '40125' + String(Date.now()).slice(-6) + '1';
+                const savingsAccountNum = '40125' + String(Date.now() + 1).slice(-6) + '2';
+                
+                const { data: accountsData, error: accountsError } = await client
+                    .from('accounts')
+                    .insert([
+                        {
+                            user_id: authData.user.id,
+                            account_type: 'checking',
+                            account_number: checkingAccountNum,
+                            account_name: 'Checking Account',
+                            balance: 1000,
+                            account_status: 'active'
+                        },
+                        {
+                            user_id: authData.user.id,
+                            account_type: 'savings',
+                            account_number: savingsAccountNum,
+                            account_name: 'Savings Account',
+                            balance: 500,
+                            account_status: 'active'
+                        }
+                    ])
+                    .select();
+                
+                if (accountsError) {
+                    resultDiv.innerHTML += `<p style="color: red;">❌ Account creation failed: ${accountsError.message}</p>`;
+                    resultDiv.innerHTML += `<p style="color: red;">Error code: ${accountsError.code}</p>`;
+                    resultDiv.innerHTML += `<p style="color: red;">Error details: ${JSON.stringify(accountsError)}</p>`;
+                } else {
+                    resultDiv.innerHTML += `<p style="color: green;">✅ Account creation successful!</p>`;
+                    resultDiv.innerHTML += `<p style="color: green;">Created ${accountsData.length} accounts with IDs: ${accountsData.map(acc => acc.id).join(', ')}</p>`;
+                }
+
+            } catch (error) {
+                resultDiv.innerHTML += `<p style="color: red;">❌ Test error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

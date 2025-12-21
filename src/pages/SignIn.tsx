@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Eye, EyeOff, Home, Receipt, User } from "lucide-react";
-import { UAParser } from "ua-parser-js";
 import { useSettings } from "@/contexts/SettingsContext";
 
 const SignIn = () => {
@@ -38,7 +37,7 @@ const SignIn = () => {
     setLoading(true);
 
     try {
-      // Step 1: Just validate credentials (no session created)
+      // Step 1: Validate credentials and get email from account number
       const result = await validateCredentials(accountNumber, password);
       
       // Check if user is banned
@@ -71,58 +70,51 @@ const SignIn = () => {
         return;
       }
 
-      // Step 2: Get device and location info
-      const parser = new UAParser();
-      const device = parser.getResult();
-      const deviceInfo = `${device.os?.name || 'Unknown OS'} ${device.os?.version || ''}`.trim();
-      
-      let location = "Unknown Location";
-      try {
-        const ipResponse = await fetch('https://ipapi.co/json/');
-        if (ipResponse.ok) {
-          const ipData = await ipResponse.json();
-          location = `${ipData.city || ''}, ${ipData.region || ''}, ${ipData.country_name || 'Unknown'}`.replace(/^, |, $/g, '');
-        }
-      } catch (e) {
-      }
-
-      // Step 3: Generate OTP
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-      // Step 4: Send OTP via edge function (it handles everything)
-      const loadingToast = toast.loading("Sending verification code...");
-      
-      const { error: emailError } = await supabase.functions.invoke('send-otp-email', {
-        body: { 
-          email: result.email,
-          otpCode: otp,
-          userName: 'User', // We don't have profile yet, that's ok
-          deviceInfo: deviceInfo,
-          location: location
-        }
+      // Step 2: Direct login - skip OTP and login immediately
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: result.email,
+        password: password,
       });
 
-      toast.dismiss(loadingToast);
-
-      if (emailError) {
-        toast.error('Failed to send verification code');
+      if (error || !data?.user) {
+        toast.error("Login failed. Please try again.");
         setLoading(false);
         return;
       }
 
-      toast.success("Verification code sent! Check your email.");
+      // Step 3: Get user profile and save to localStorage
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
 
-      // Step 5: Navigate to OTP page with the OTP we generated
-      navigate("/otp-verification", {
-        state: {
-          email: result.email,
-          userId: result.userId,
-          accountNumber: accountNumber,
-          password: password, // Need this to actually log in after OTP
-          storedOTP: otp, // Pass the OTP so they can verify it
-          purpose: 'login'
-        }
-      });
+      if (profile) {
+        const userData = {
+          id: profile.id,
+          email: profile.email,
+          firstName: profile.first_name || profile.full_name?.split(' ')[0] || 'User',
+          lastName: profile.last_name || profile.full_name?.split(' ').slice(1).join(' ') || '',
+          accountNumber: profile.account_number,
+          balance: profile.balance || 0
+        };
+        localStorage.setItem("user", JSON.stringify(userData));
+      }
+
+      // Step 4: Send login notification email (optional, don't block login if it fails)
+      try {
+        await supabase.functions.invoke('send-login-notification', {
+          body: {
+            email: result.email,
+            userName: profile?.first_name || 'User'
+          }
+        });
+      } catch (e) {
+        // Silently fail - login notification is not critical
+      }
+
+      toast.success("Login successful!");
+      navigate("/dashboard");
 
     } catch (error) {
       toast.error("An error occurred. Please try again.");

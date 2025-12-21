@@ -41,7 +41,7 @@ const MobileDeposit = () => {
       
       const { data, error } = await supabase
         .from('accounts')
-        .select('id, account_name, account_number, balance')
+        .select('id, account_name, account_number, checking_balance, savings_balance, account_type')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -334,14 +334,21 @@ const MobileDeposit = () => {
                   <SelectValue placeholder="Choose an account" />
                 </SelectTrigger>
                 <SelectContent>
-                  {accounts.map((account) => (
-                    <SelectItem key={account.id} value={account.id}>
-                      <div className="flex justify-between items-center w-full">
-                        <span>{account.account_name} {account.account_number}</span>
-                        <span className="text-gray-500 ml-4">${account.balance?.toFixed(2) || '0.00'}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
+                  {accounts.map((account) => {
+                    const balance = account.account_type === 'checking' 
+                      ? account.checking_balance 
+                      : account.account_type === 'savings' 
+                      ? account.savings_balance 
+                      : account.balance;
+                    return (
+                      <SelectItem key={account.id} value={account.id}>
+                        <div className="flex justify-between items-center w-full">
+                          <span>{account.account_name} {account.account_number}</span>
+                          <span className="text-gray-500 ml-4">${parseFloat(balance?.toString() || '0').toFixed(2)}</span>
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>

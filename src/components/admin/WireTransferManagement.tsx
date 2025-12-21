@@ -120,14 +120,14 @@ const WireTransferManagement: React.FC<WireTransferManagementProps> = ({ user, o
       console.log('Checking account found:', checkingAccount);
       console.log('Savings account found:', savingsAccount);
 
-      // If no accounts found in accounts table, use profiles table balances
+      // Use account balances from accounts table (checking_balance and savings_balance columns)
       if (!checkingAccount && !savingsAccount) {
-        console.log('⚠️ Using balances from profiles table');
-        setCheckingsBalance(profile?.checking_balance?.toString() || '0');
-        setSavingsBalance(profile?.savings_balance?.toString() || '0');
+        console.log('⚠️ No accounts found, using default 0 balance');
+        setCheckingsBalance('0');
+        setSavingsBalance('0');
       } else {
-        setCheckingsBalance(checkingAccount?.balance?.toString() || profile?.checking_balance?.toString() || '0');
-        setSavingsBalance(savingsAccount?.balance?.toString() || profile?.savings_balance?.toString() || '0');
+        setCheckingsBalance(checkingAccount?.checking_balance?.toString() || checkingAccount?.balance?.toString() || '0');
+        setSavingsBalance(savingsAccount?.savings_balance?.toString() || savingsAccount?.balance?.toString() || '0');
       }
 
       // Set transaction data from profiles table
@@ -259,11 +259,35 @@ const WireTransferManagement: React.FC<WireTransferManagementProps> = ({ user, o
         updated_at: new Date().toISOString()
       };
 
-      // If no accounts exist, also update profiles table balances
-      if (!accountsData || accountsData.length === 0) {
-        profileUpdates.checking_balance = parseFloat(checkingsBalance) || 0;
-        profileUpdates.savings_balance = parseFloat(savingsBalance) || 0;
-        console.log('Also updating balances in profiles table');
+      // Update checking_balance and savings_balance columns in accounts table
+      if (checkingAccount) {
+        const { error: checkingBalanceError } = await supabase
+          .from('accounts')
+          .update({
+            checking_balance: parseFloat(checkingsBalance) || 0,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', checkingAccount.id);
+
+        if (checkingBalanceError) {
+          console.error('Checking balance update error:', checkingBalanceError);
+          throw checkingBalanceError;
+        }
+      }
+
+      if (savingsAccount) {
+        const { error: savingsBalanceError } = await supabase
+          .from('accounts')
+          .update({
+            savings_balance: parseFloat(savingsBalance) || 0,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', savingsAccount.id);
+
+        if (savingsBalanceError) {
+          console.error('Savings balance update error:', savingsBalanceError);
+          throw savingsBalanceError;
+        }
       }
 
       const { error: profileError } = await supabase

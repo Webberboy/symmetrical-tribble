@@ -113,7 +113,9 @@ const InternalTransfer = () => {
           id: account.account_type, // 'checking' or 'savings'
           name: account.account_type === 'checking' ? 'My Checking' : 'My Savings',
           type: account.account_type === 'checking' ? 'Checking Account' : 'Savings Account',
-          balance: account.balance || 0.00,
+          balance: account.account_type === 'checking' 
+            ? (account.checking_balance || account.balance || 0.00)
+            : (account.savings_balance || account.balance || 0.00),
           accountNumber: `****${lastFourDigits}` // Show last 4 digits
         };
       });
@@ -171,12 +173,33 @@ const InternalTransfer = () => {
   };
 
   const handleTransfer = async () => {
-    setIsProcessing(true);
+    console.log('🚀 INTERNAL TRANSFER: Starting transfer process...');
     
+    if (!userId || !fromAccount || !toAccount || !amount) {
+      console.log('❌ INTERNAL TRANSFER: Missing required fields', { userId, fromAccount, toAccount, amount });
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+
     try {
       const transferAmount = parseFloat(amount);
       const fromAccountUI = getSelectedAccount(fromAccount);
       const toAccountUI = getSelectedAccount(toAccount);
+
+      console.log('📋 INTERNAL TRANSFER: Transfer details', {
+        userId,
+        fromAccount,
+        toAccount,
+        amount: transferAmount,
+        fromAccountUI,
+        toAccountUI
+      });
 
       if (!fromAccountUI || !toAccountUI) {
         throw new Error('Account data not found');
@@ -184,14 +207,17 @@ const InternalTransfer = () => {
 
       // Generate unique transfer ID
       const newTransferId = `TXN${Date.now()}`;
+      console.log('🆔 INTERNAL TRANSFER: Generated transfer ID', newTransferId);
 
       // Get accounts from database to verify current balances
+      console.log('🔍 INTERNAL TRANSFER: Fetching account data from database...');
       const { data: accountsData, error: accountsError } = await supabase
         .from('accounts')
         .select('*')
         .eq('user_id', userId)
         .in('account_type', [fromAccount, toAccount]);
 
+      console.log('📊 INTERNAL TRANSFER: Account data fetched', { accountsData, accountsError });
       if (accountsError) throw accountsError;
 
       const fromAccountData = accountsData.find(acc => acc.account_type === fromAccount);
@@ -201,12 +227,19 @@ const InternalTransfer = () => {
         throw new Error('Account data not found in database');
       }
 
-      // Calculate new balances
-      const currentFromBalance = fromAccountData.balance;
-      const currentToBalance = toAccountData.balance;
+      // Calculate new balances based on account type
+      const currentFromBalance = fromAccount === 'checking' ? fromAccountData.checking_balance : fromAccountData.savings_balance;
+      const currentToBalance = toAccount === 'checking' ? toAccountData.checking_balance : toAccountData.savings_balance;
+
+      console.log('💰 INTERNAL TRANSFER: Current balances', {
+        fromAccount: currentFromBalance,
+        toAccount: currentToBalance,
+        transferAmount
+      });
 
       // Check if sufficient funds
       if (currentFromBalance < transferAmount) {
+        console.log('⚠️ INTERNAL TRANSFER: Insufficient funds');
         toast({
           title: "Insufficient Funds",
           description: "You don't have enough balance for this transfer",
@@ -219,89 +252,147 @@ const InternalTransfer = () => {
       const newFromBalance = currentFromBalance - transferAmount;
       const newToBalance = currentToBalance + transferAmount;
 
+      console.log('🧮 INTERNAL TRANSFER: New balances calculated', {
+        newFromBalance,
+        newToBalance
+      });
+
       // Step 1: Create debit transaction (from account)
+      console.log('📝 INTERNAL TRANSFER: Step 1 - Creating debit transaction...');
+      const debitTransactionData = {
+        user_id: userId,
+        type: 'debit',
+        amount: transferAmount,
+        merchant: 'Internal Transfer',
+        description: `Internal transfer to ${toAccountUI.name}`,
+        category: 'Transfer',
+        status: 'completed',
+        account_type: fromAccount,
+        recipient_account: toAccount,
+        account_number: fromAccountData.account_number,
+        transfer_id: newTransferId
+      };
+      console.log('📝 INTERNAL TRANSFER: Debit transaction data', debitTransactionData);
+
       const { data: debitTxn, error: debitError } = await supabase
         .from('transactions')
-        .insert({
-          user_id: userId,
-          type: 'debit',
-          amount: transferAmount,
-          description: `Internal transfer to ${toAccountUI.name}`,
-          status: 'completed',
-          recipient_account: toAccount
-        })
+        .insert(debitTransactionData)
         .select()
         .single();
 
+      console.log('✅ INTERNAL TRANSFER: Debit transaction result', { debitTxn, debitError });
       if (debitError) throw debitError;
 
       // Step 2: Create credit transaction (to account)
+      console.log('📝 INTERNAL TRANSFER: Step 2 - Creating credit transaction...');
+      const creditTransactionData = {
+        user_id: userId,
+        type: 'credit',
+        amount: transferAmount,
+        merchant: 'Internal Transfer',
+        description: `Internal transfer from ${fromAccountUI.name}`,
+        category: 'Transfer',
+        status: 'completed',
+        account_type: toAccount,
+        recipient_account: fromAccount,
+        account_number: toAccountData.account_number,
+        transfer_id: newTransferId
+      };
+      console.log('📝 INTERNAL TRANSFER: Credit transaction data', creditTransactionData);
+
       const { data: creditTxn, error: creditError } = await supabase
         .from('transactions')
-        .insert({
-          user_id: userId,
-          type: 'credit',
-          amount: transferAmount,
-          description: `Internal transfer from ${fromAccountUI.name}`,
-          status: 'completed',
-          recipient_account: fromAccount
-        })
+        .insert(creditTransactionData)
         .select()
         .single();
 
+      console.log('✅ INTERNAL TRANSFER: Credit transaction result', { creditTxn, creditError });
       if (creditError) throw creditError;
 
       // Step 3: Create internal transfer record
+      console.log('📝 INTERNAL TRANSFER: Step 3 - Creating internal transfer record...');
+      const internalTransferData = {
+        user_id: userId,
+        transaction_id: debitTxn.id,
+        from_account_type: fromAccount,
+        to_account_type: toAccount,
+        amount: transferAmount,
+        from_account_number: fromAccountData.account_number,
+        to_account_number: toAccountData.account_number,
+        transfer_id: newTransferId,
+        status: 'completed',
+        description: `Internal transfer from ${fromAccountUI.name} to ${toAccountUI.name}`
+      };
+      console.log('📝 INTERNAL TRANSFER: Internal transfer data', internalTransferData);
+
       const { error: transferError } = await supabase
         .from('internal_transfers')
-        .insert({
-          user_id: userId,
-          transaction_id: debitTxn.id,
-          from_account_type: fromAccount,
-          to_account_type: toAccount,
-          amount: transferAmount,
-          from_account_number: fromAccountData.account_number,
-          to_account_number: toAccountData.account_number,
-          transfer_id: newTransferId,
-          status: 'completed',
-          description: `Internal transfer from ${fromAccountUI.name} to ${toAccountUI.name}`
-        });
+        .insert(internalTransferData);
 
+      console.log('✅ INTERNAL TRANSFER: Internal transfer result', { transferError });
       if (transferError) throw transferError;
 
       // Step 4: Update account balances in accounts table
+      console.log('📝 INTERNAL TRANSFER: Step 4 - Updating account balances...');
+      
+      // Determine which balance column to update based on account type
+      const fromAccountUpdateData = fromAccount === 'checking' 
+        ? { checking_balance: newFromBalance, updated_at: new Date().toISOString() }
+        : { savings_balance: newFromBalance, updated_at: new Date().toISOString() };
+        
+      const toAccountUpdateData = toAccount === 'checking' 
+        ? { checking_balance: newToBalance, updated_at: new Date().toISOString() }
+        : { savings_balance: newToBalance, updated_at: new Date().toISOString() };
+
+      console.log('📝 INTERNAL TRANSFER: Account update data', {
+        fromAccountUpdate: fromAccountUpdateData,
+        toAccountUpdate: toAccountUpdateData,
+        fromAccountId: fromAccountData.id,
+        toAccountId: toAccountData.id
+      });
+
       // Update FROM account
       const { error: fromUpdateError } = await supabase
         .from('accounts')
-        .update({ 
-          balance: newFromBalance,
-          last_transaction_date: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
+        .update(fromAccountUpdateData)
         .eq('id', fromAccountData.id);
 
+      console.log('✅ INTERNAL TRANSFER: From account update result', { fromUpdateError });
       if (fromUpdateError) throw fromUpdateError;
 
       // Update TO account
       const { error: toUpdateError } = await supabase
         .from('accounts')
-        .update({ 
-          balance: newToBalance,
-          last_transaction_date: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
+        .update(toAccountUpdateData)
         .eq('id', toAccountData.id);
 
+      console.log('✅ INTERNAL TRANSFER: To account update result', { toUpdateError });
       if (toUpdateError) throw toUpdateError;
 
       // Update local state with new balances
+      console.log('🔄 INTERNAL TRANSFER: Updating local state with new balances');
       setAccounts(prevAccounts => prevAccounts.map(acc => ({
         ...acc,
         balance: acc.id === fromAccount ? newFromBalance : 
                 acc.id === toAccount ? newToBalance : acc.balance
       })));
+      
+      // Also update the account data in the database format for consistency
+      if (fromAccountData) {
+        fromAccountData[fromAccount === 'checking' ? 'checking_balance' : 'savings_balance'] = newFromBalance;
+      }
+      if (toAccountData) {
+        toAccountData[toAccount === 'checking' ? 'checking_balance' : 'savings_balance'] = newToBalance;
+      }
 
       setTransferId(newTransferId);
+      
+      console.log('🎉 INTERNAL TRANSFER: Transfer completed successfully!', {
+        transferId: newTransferId,
+        amount: transferAmount,
+        fromAccount: fromAccountUI.name,
+        toAccount: toAccountUI.name
+      });
       
       toast({
         title: "Transfer Successful",
@@ -310,12 +401,19 @@ const InternalTransfer = () => {
       
       setCurrentStep('success');
     } catch (error) {
+      console.error('💥 INTERNAL TRANSFER: Transfer failed with error', error);
+      console.error('💥 INTERNAL TRANSFER: Error details', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
       toast({
         title: "Transfer Failed",
         description: "Please try again later",
         variant: "destructive",
       });
     } finally {
+      console.log('🏁 INTERNAL TRANSFER: Transfer process completed');
       setIsProcessing(false);
     }
   };

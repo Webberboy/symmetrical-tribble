@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Welcome Email (Frontend)</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        button { padding: 10px 20px; margin: 10px 0; }
+        .success { color: green; }
+        .error { color: red; }
+        .log { background: #f0f0f0; padding: 10px; margin: 10px 0; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>Test Welcome Email (Frontend Method)</h1>
+    <p>This tests the welcome email using the frontend method (completeUserSignup → sendWelcomeEmail)</p>
+    
+    <button onclick="testWelcomeEmail()">Test Welcome Email</button>
+    <div id="result"></div>
+    <div id="logs"></div>
+
+    <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+        
+        const SUPABASE_URL = 'https://jovrfejbutfrzvclchuf.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvdnJmZWpidXRmcnp2Y2xjaHVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjk5OTQ1NzMsImV4cCI6MjA0NTU3MDU3M30.jfHbIu6a8QdBq3vN6vW0Tk_6bI7dW6dZ1c2dB3e4f5g6';
+        
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        function log(message) {
+            const logsDiv = document.getElementById('logs');
+            logsDiv.innerHTML += `<div class="log">${new Date().toISOString()}: ${message}</div>`;
+        }
+        
+        async function testWelcomeEmail() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing welcome email...';
+            
+            try {
+                log('Starting welcome email test...');
+                
+                // Create a mock profile to test the welcome email function
+                const mockProfile = {
+                    id: 'test-user-' + Date.now(),
+                    email: 'test@example.com',
+                    first_name: 'Test',
+                    full_name: 'Test User',
+                    account_number: '401251234567',
+                    created_at: new Date().toISOString()
+                };
+                
+                log(`Testing with mock profile: ${JSON.stringify(mockProfile, null, 2)}`);
+                
+                // Test the welcome email function directly
+                const payload = {
+                    type: 'INSERT',
+                    table: 'profiles',
+                    schema: 'public',
+                    record: mockProfile,
+                    old_record: null
+                };
+                
+                log('Calling send-welcome-email function...');
+                
+                const { data, error } = await supabase.functions.invoke('send-welcome-email', {
+                    body: payload
+                });
+                
+                if (error) {
+                    log(`Function error: ${JSON.stringify(error, null, 2)}`);
+                    resultDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                } else {
+                    log(`Function success: ${JSON.stringify(data, null, 2)}`);
+                    resultDiv.innerHTML = `<div class="success">Welcome email sent successfully! Check the function logs for details.</div>`;
+                }
+                
+            } catch (error) {
+                log(`Unexpected error: ${error.message}`);
+                resultDiv.innerHTML = `<div class="error">Unexpected error: ${error.message}</div>`;
+            }
+            
+            log('Test completed.');
+        }
+        
+        // Make testWelcomeEmail available globally
+        window.testWelcomeEmail = testWelcomeEmail;
+    </script>
+</body>
+</html>

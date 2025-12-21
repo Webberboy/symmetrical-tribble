@@ -91,7 +91,9 @@ const AccountBalances: React.FC = () => {
         id: index + 1,
         name: account.account_type === 'savings' ? 'Savings Account' : 'Checking Account',
         type: account.account_type === 'savings' ? 'savings' : 'current',
-        balance: account.balance || 0.00,
+        balance: account.account_type === 'checking' 
+          ? (account.checking_balance || account.balance || 0.00)
+          : (account.savings_balance || account.balance || 0.00),
         accountNumber: account.account_number, // Show full account number
         lastCredit: account.account_type === 'checking' 
           ? (profile?.checking_last_credit || 0.00)

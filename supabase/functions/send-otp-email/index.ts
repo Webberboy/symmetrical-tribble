@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,6 +23,23 @@ serve(async (req) => {
   }
 
   try {
+    // Check authentication - just verify that some authorization header exists
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      throw new Error("Missing or invalid Authorization header");
+    }
+
+    // For now, accept any bearer token (we can tighten this later)
+    const token = authHeader.replace("Bearer ", "");
+    if (!token) {
+      throw new Error("Empty bearer token");
+    }
+
+    // Check if RESEND_API_KEY is available
+    if (!RESEND_API_KEY) {
+      throw new Error("RESEND_API_KEY is not configured");
+    }
+
     const { email, otpCode, userName, deviceInfo, location } = await req.json() as OTPEmailRequest;
 
 
@@ -145,7 +164,7 @@ serve(async (req) => {
     });
   } catch (error) {
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error.message, details: error.stack }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,

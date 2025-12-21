@@ -176,22 +176,6 @@ const VerifyEmail = () => {
         signupData
       );
 
-
-      // Send welcome email
-      try {
-        const { sendWelcomeEmail } = await import("@/lib/emailService");
-        const result = await sendWelcomeEmail(
-          signupData.email,
-          signupData.first_name,
-          accountNumber
-        );
-        
-        if (result.success) {
-        } else {
-        }
-      } catch (emailError) {
-      }
-
       // Cleanup database and localStorage
       await supabase
         .from("pending_signups")

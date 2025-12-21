@@ -7,7 +7,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -53,6 +53,41 @@ export default function FlexibleAdminLogin() {
     setIsLoading(true);
 
     try {
+      // For ADMIN_TABLE method, use direct admin table authentication
+      if (ADMIN_AUTH_METHOD === 'ADMIN_TABLE' || ADMIN_AUTH_METHOD === 'COMBINED') {
+        // Use the verify_admin_login function we created
+        const { data: adminData, error: adminError } = await supabase
+          .rpc('verify_admin_login', {
+            p_email: email.trim(),
+            p_password: password.trim()
+          });
+
+        if (adminError || !adminData || !adminData[0]?.success) {
+          toast.error('Invalid admin credentials or account inactive');
+          setIsLoading(false);
+          return;
+        }
+
+        const admin = adminData[0];
+
+        // Create mock admin session
+        const mockAdminUser = {
+          id: admin.admin_id,
+          email: admin.admin_email,
+          role: admin.admin_role,
+          permissions: { all: true },
+          isAdmin: true
+        };
+        
+        localStorage.setItem('adminUser', JSON.stringify(mockAdminUser));
+        localStorage.setItem('testAdminSession', 'true');
+        toast.success('Admin Login Successful!');
+        navigate('/xk9p2vnz7q-dash');
+        setIsLoading(false);
+        return;
+      }
+
+      // For other methods, use the original Supabase Auth flow
       // Step 1: Sign in with Supabase Auth
       const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
         email: email.trim(),
@@ -71,7 +106,6 @@ export default function FlexibleAdminLogin() {
         return;
       }
 
-
       // Step 2: Check admin access based on selected method
       let hasAdminAccess = false;
       let adminCheckMethod = '';
@@ -80,11 +114,6 @@ export default function FlexibleAdminLogin() {
         case 'EMAIL_WHITELIST':
           hasAdminAccess = checkAdminEmail(authData.user.email || '');
           adminCheckMethod = 'Email Whitelist';
-          break;
-
-        case 'ADMIN_TABLE':
-          hasAdminAccess = await checkAdminTable(authData.user.id);
-          adminCheckMethod = 'Admin Table';
           break;
 
         case 'AUTH_METADATA':
@@ -97,15 +126,9 @@ export default function FlexibleAdminLogin() {
           adminCheckMethod = 'RPC Function';
           break;
 
-        case 'COMBINED':
-          hasAdminAccess = await isAdmin();
-          adminCheckMethod = 'Combined Methods';
-          break;
-
         default:
           hasAdminAccess = false;
       }
-
 
       // Step 3: Grant or deny access
       if (!hasAdminAccess) {
@@ -115,19 +138,9 @@ export default function FlexibleAdminLogin() {
         return;
       }
 
-      // Step 4: Get admin details (if using admin table)
-      if (ADMIN_AUTH_METHOD === 'ADMIN_TABLE' || ADMIN_AUTH_METHOD === 'COMBINED') {
-        const adminUser = await getAdminUser();
-        if (adminUser) {
-          
-          // Store admin info in localStorage
-          localStorage.setItem('adminUser', JSON.stringify(adminUser));
-        }
-      }
-
       // Success!
       toast.success(`Welcome! (${adminCheckMethod})`);
-      navigate('/admin/dashboard');
+      navigate('/xk9p2vnz7q-dash');
 
     } catch (error: any) {
       toast.error(error.message || 'An error occurred during login');

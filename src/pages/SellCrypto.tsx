@@ -215,27 +215,27 @@ const SellCrypto = () => {
       // Fetch checking account
       const { data: checkingAccount } = await supabase
         .from('accounts')
-        .select('id, balance')
+        .select('id, checking_balance, savings_balance')
         .eq('user_id', user.id)
         .eq('account_type', 'checking')
         .single();
 
       if (checkingAccount) {
         setCheckingAccountId(checkingAccount.id);
-        setCheckingBalance(parseFloat(checkingAccount.balance || '0'));
+        setCheckingBalance(parseFloat(checkingAccount.checking_balance || checkingAccount.balance || '0'));
       }
 
       // Fetch savings account
       const { data: savingsAccount } = await supabase
         .from('accounts')
-        .select('id, balance')
+        .select('id, checking_balance, savings_balance')
         .eq('user_id', user.id)
         .eq('account_type', 'savings')
         .single();
 
       if (savingsAccount) {
         setSavingsAccountId(savingsAccount.id);
-        setSavingsBalance(parseFloat(savingsAccount.balance || '0'));
+        setSavingsBalance(parseFloat(savingsAccount.savings_balance || savingsAccount.balance || '0'));
       }
 
       // Set default withdrawal method to checking if available

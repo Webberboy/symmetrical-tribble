@@ -35,27 +35,47 @@ const WireAuthorization: React.FC = () => {
   const [countdown, setCountdown] = useState(60);
 
   useEffect(() => {
+    console.log('=== WIRE AUTHORIZATION COMPONENT MOUNTED ===');
+    console.log('Initial state:', {
+      transferData: transferData,
+      userEmail: userEmail,
+      pinSent: pinSent,
+      pinVerified: pinVerified,
+      generatedPin: generatedPin,
+      isLoading: isLoading
+    });
+    
     fetchUserData();
     // Load transfer data and get user email
     const loadTransferData = async () => {
       try {
         const data = localStorage.getItem('wireFinalTransfer');
+        console.log('LocalStorage wireFinalTransfer data:', data);
+        
         if (!data) {
+          console.log('No transfer data found - redirecting to wire-account-selection');
           navigate('/wire-account-selection');
           return;
         }
         
-        setTransferData(JSON.parse(data));
+        const parsedData = JSON.parse(data);
+        console.log('Parsed transfer data:', parsedData);
+        setTransferData(parsedData);
         
         // Get user email from Supabase
         const { data: { user } } = await supabase.auth.getUser();
+        console.log('Supabase user:', user);
+        
         if (user && user.email) {
+          console.log('Setting user email:', user.email);
           setUserEmail(user.email);
         } else {
+          console.log('User not authenticated - redirecting to signin');
           toast.error('User not authenticated');
           navigate('/signin');
         }
       } catch (error) {
+        console.error('Error loading transfer data:', error);
         navigate('/wire-account-selection');
       } finally {
         setIsLoading(false);
@@ -105,56 +125,133 @@ const WireAuthorization: React.FC = () => {
     setIsProcessing(true);
     
     try {
-      // Generate 6-digit PIN
-      const pin = Math.floor(100000 + Math.random() * 900000).toString();
-      setGeneratedPin(pin);
+      // Validate transfer data exists
+      if (!transferData) {
+        console.error('Transfer data is missing');
+        toast.error('Transfer data is missing. Please start over.');
+        setIsProcessing(false);
+        return;
+      }
       
-      // Send PIN via Supabase Edge Function
-      const { error } = await supabase.functions.invoke('send-transfer-pin', {
+      // Validate required fields
+      if (!userEmail) {
+        console.error('User email is missing');
+        toast.error('User email is missing. Please log in again.');
+        setIsProcessing(false);
+        return;
+      }
+      
+      if (!transferData.totalAmount || transferData.totalAmount <= 0) {
+        console.error('Invalid transfer amount:', transferData.totalAmount);
+        toast.error('Invalid transfer amount. Please check your transfer details.');
+        setIsProcessing(false);
+        return;
+      }
+      
+      if (!transferData.recipientData?.recipientName) {
+        console.error('Recipient name is missing');
+        toast.error('Recipient information is incomplete. Please check your transfer details.');
+        setIsProcessing(false);
+        return;
+      }
+      
+      // Generate 6-digit authorization code
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      setGeneratedPin(code);
+      
+      // Console log for debugging
+      console.log('Send Transfer Authorization Code clicked:', {
+        userEmail,
+        amount: transferData.totalAmount,
+        recipient: transferData.recipientData.recipientName,
+        generatedCode: code,
+        timestamp: new Date().toISOString(),
+        requestBody: JSON.stringify({
+          email: userEmail,
+          code: code,
+          amount: transferData.totalAmount,
+          recipient: transferData.recipientData.recipientName
+        })
+      });
+      
+      // Send authorization code via new Supabase Edge Function
+      const { data, error } = await supabase.functions.invoke('send-wire-auth-code', {
         body: {
           email: userEmail,
-          pin: pin,
-          amount: transferData?.totalAmount,
-          recipient: transferData?.recipientData.recipientName,
-        },
-      });
+          code: code,
+          amount: transferData.totalAmount,
+          recipient: transferData.recipientData.recipientName
+        }
+      })
+      
+      console.log('Edge function response:', { data, error });
 
       if (error) {
-        toast.error('Failed to send transfer PIN. Please try again.');
+        console.error('Failed to send authorization code:', error);
+        toast.error('Failed to send authorization code. Please try again.');
         setIsProcessing(false);
         return;
       }
 
+      console.log('PIN SENT SUCCESSFULLY - Updating state:');
+      console.log('Setting pinSent to true');
+      console.log('Setting countdown to 60');
+      console.log('Setting canResend to false');
+      
       setPinSent(true);
       setCountdown(60);
       setCanResend(false);
-      toast.success(`Transfer PIN sent to ${userEmail}`);
+      toast.success(`Authorization code sent to ${userEmail}`);
     } catch (error) {
-      toast.error('Failed to send transfer PIN');
+      console.error('Authorization code error:', error);
+      toast.error('Failed to send authorization code');
     } finally {
       setIsProcessing(false);
     }
   };
 
   const handleVerifyPin = () => {
+    console.log('=== PIN VERIFICATION ATTEMPT ===');
+    console.log('Entered PIN:', transferPin);
+    console.log('Generated PIN:', generatedPin);
+    console.log('PIN Match:', transferPin === generatedPin);
+    console.log('Transfer Data:', transferData);
+    console.log('User Email:', userEmail);
+    
     if (transferPin === generatedPin) {
+      console.log('PIN VERIFIED SUCCESSFULLY - Setting pinVerified to true');
       setPinVerified(true);
       toast.success('Transfer PIN verified successfully!');
     } else {
+      console.log('PIN VERIFICATION FAILED - Clearing input');
       toast.error('Invalid transfer PIN. Please try again.');
       setTransferPin('');
     }
   };
 
   const handleResendPin = () => {
+    console.log('=== RESEND PIN CLICKED ===');
+    console.log('Current state before resend:', {
+      canResend: canResend,
+      countdown: countdown,
+      transferPin: transferPin
+    });
+    
     setCanResend(false);
     setCountdown(60);
     setTransferPin('');
+    console.log('Calling handleSendPin for resend...');
     handleSendPin();
   };
 
   const handleProcessTransfer = () => {
+    console.log('=== PROCESS TRANSFER CLICKED ===');
+    console.log('PIN Verified:', pinVerified);
+    console.log('Is Processing:', isProcessing);
+    console.log('Transfer Data:', transferData);
+    
     if (pinVerified) {
+      console.log('Starting transfer processing...');
       setIsProcessing(true);
       
       // Save authorization data
@@ -165,12 +262,17 @@ const WireAuthorization: React.FC = () => {
         status: 'processing'
       };
       
+      console.log('Saving authorization data to localStorage:', authData);
       localStorage.setItem('wireTransferAuth', JSON.stringify(authData));
       
+      console.log('Setting 2-second processing delay before navigation...');
       // Simulate processing delay
       setTimeout(() => {
+        console.log('Processing delay complete - navigating to /wire-success');
         navigate('/wire-success');
       }, 2000);
+    } else {
+      console.log('Transfer processing blocked - PIN not verified');
     }
   };
 
@@ -249,7 +351,7 @@ const WireAuthorization: React.FC = () => {
           {!pinSent ? (
             <div>
               <p className="text-sm text-gray-600 mb-3">
-                We'll send a 6-digit transfer PIN to your registered email address:
+                We'll send a 6-digit authorization code to your registered email address:
               </p>
               <p className="text-sm font-medium text-gray-900 mb-4">{userEmail}</p>
               <button
@@ -261,19 +363,28 @@ const WireAuthorization: React.FC = () => {
                     : 'bg-gray-900 text-white hover:bg-gray-800'
                 }`}
               >
-                {isProcessing ? 'Sending...' : 'Send Transfer PIN'}
+                {isProcessing ? 'Sending...' : 'Send Authorization Code'}
               </button>
             </div>
           ) : !pinVerified ? (
             <div>
               <p className="text-sm text-gray-600 mb-3">
-                Enter the 6-digit PIN sent to {userEmail}:
+                Enter the 6-digit authorization code sent to {userEmail}:
               </p>
               <input
                 type="text"
                 value={transferPin}
-                onChange={(e) => setTransferPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                placeholder="123456"
+                onChange={(e) => {
+                  const cleanedValue = e.target.value.replace(/\D/g, '').slice(0, 6);
+                  console.log('PIN Input Changed:', {
+                    originalValue: e.target.value,
+                    cleanedValue: cleanedValue,
+                    length: cleanedValue.length,
+                    maxLength: 6
+                  });
+                  setTransferPin(cleanedValue);
+                }}
+                placeholder="Enter 6-digit code"
                 maxLength={6}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-center text-lg font-mono mb-4"
                 autoFocus
@@ -287,7 +398,7 @@ const WireAuthorization: React.FC = () => {
                     : 'bg-gray-900 text-white hover:bg-gray-800'
                 }`}
               >
-                Verify PIN
+                Verify Code
               </button>
               
               {/* Resend PIN */}

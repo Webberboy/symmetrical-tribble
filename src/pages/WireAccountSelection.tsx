@@ -87,7 +87,7 @@ const WireAccountSelection = () => {
         id: account.account_type, // 'checking' or 'savings'
         name: account.account_type === 'checking' ? 'My Checking' : 'My Savings',
         type: account.account_type === 'checking' ? 'Checking Account' : 'Savings Account',
-        balance: account.balance || 0.00,
+        balance: account.account_type === 'checking' ? (account.checking_balance || 0.00) : (account.savings_balance || 0.00),
         accountNumber: account.account_number // Each has unique account number
       }));
 

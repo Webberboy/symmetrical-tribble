@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Webhook Trigger</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Test Webhook Trigger</h1>
+    <button id="testWebhook">Test Webhook Trigger</button>
+    <div id="result"></div>
+
+    <script>
+        // Initialize Supabase client
+        const supabaseUrl = 'https://jovrfejbutfrzvclchuf.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvdnJmZWpidWZyenZjbGNodWYiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTczNDU1OTU5OSwiZXhwIjoyMDUwMTM1NTk5fQ.3I3CQgN5PHb5smnH5l4WiUe0e5KN7b5S6z0gBcTo9So';
+        
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        document.getElementById('testWebhook').addEventListener('click', async () => {
+            try {
+                console.log('Testing webhook trigger...');
+                
+                // Create a test auth user first
+                const testEmail = `test.webhook.${Date.now()}@example.com`;
+                const testPassword = 'TestPassword123!';
+                
+                console.log('Creating test auth user...');
+                const { data: authData, error: authError } = await supabase.auth.signUp({
+                    email: testEmail,
+                    password: testPassword
+                });
+
+                if (authError) {
+                    console.error('Auth error:', authError);
+                    document.getElementById('result').innerHTML = `<p style="color: red;">Auth error: ${authError.message}</p>`;
+                    return;
+                }
+
+                console.log('Auth user created:', authData.user.id);
+
+                // Now create a profile to trigger the webhook
+                const profileData = {
+                    id: authData.user.id,
+                    full_name: 'Test Webhook User',
+                    first_name: 'Test',
+                    last_name: 'Webhook User',
+                    email: testEmail,
+                    phone: '+1234567890',
+                    date_of_birth: '1990-01-01',
+                    ssn: '123-45-6789',
+                    street_address: '123 Test St',
+                    city: 'Test City',
+                    state: 'TS',
+                    zip_code: '12345',
+                    country: 'United States',
+                    account_type: 'checking',
+                    account_number: `TEST${Date.now()}`,
+                    balance: 0.00,
+                    account_status: 'active'
+                };
+
+                console.log('Creating profile to trigger webhook...');
+                
+                // Use service role key for direct insert
+                const serviceRoleKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvdnJmZWpidWZyenZjbGNodWYiLCJyb2xlIjoic2VydmljZV9yb2xlIiwiaWF0IjoxNzM0NTU5NTk5LCJleHAiOjIwNTAxMzU1OTl9.3I3CQgN5PHb5smnH5l4WiUe0e5KN7b5S6z0gBcTo9So';
+                const adminSupabase = window.supabase.createClient(supabaseUrl, serviceRoleKey);
+                
+                const { data: profileDataResult, error: profileError } = await adminSupabase
+                    .from('profiles')
+                    .insert(profileData)
+                    .select()
+                    .single();
+
+                if (profileError) {
+                    console.error('Profile error:', profileError);
+                    document.getElementById('result').innerHTML = `<p style="color: red;">Profile error: ${profileError.message}</p>`;
+                    return;
+                }
+
+                console.log('Profile created successfully:', profileDataResult);
+                document.getElementById('result').innerHTML = `<p style="color: green;">Profile created! Webhook should be triggered. Check logs.</p>`;
+                
+                // Wait a few seconds for webhook to process
+                setTimeout(async () => {
+                    console.log('Checking if webhook was processed...');
+                    // You can check edge function logs here if needed
+                }, 5000);
+
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('result').innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

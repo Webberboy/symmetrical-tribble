@@ -142,27 +142,13 @@ export const assignUserRole = async (userId: string, role: 'user' | 'admin' = 'u
  */
 export const createUserAccounts = async (userId: string, checkingAccountNumber: string, session?: any) => {
   try {
-    // Use authenticated client if session is provided
-    let client = supabase;
-    if (session?.access_token) {
-      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-      const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      
-      client = createClient<Database>(
-        SUPABASE_URL,
-        SUPABASE_ANON_KEY,
-        {
-          global: {
-            headers: {
-              Authorization: `Bearer ${session.access_token}`
-            }
-          }
-        }
-      );
-    }
-
+    // Use the default supabase client - it should have the authenticated user's context
+    // The session is already managed by the auth system
+    
+    console.log('Creating accounts for user:', userId, 'with account number:', checkingAccountNumber);
+    
     // Create checking account with existing account number
-    const { error: checkingError } = await client
+    const { error: checkingError } = await supabase
       .from('accounts')
       .insert({
         user_id: userId,
@@ -175,14 +161,58 @@ export const createUserAccounts = async (userId: string, checkingAccountNumber: 
       });
 
     if (checkingError) {
-      throw new Error(`Failed to create checking account: ${checkingError.message}`);
+      console.error('Checking account creation error:', checkingError);
+      
+      // If it's a permission error, try with explicit session context
+      if (checkingError.message.includes('permission denied')) {
+        console.log('Retrying with explicit session context...');
+        
+        // Create a new authenticated client with explicit session
+        if (session?.access_token) {
+          const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+          const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+          
+          const authenticatedSupabase = createClient<Database>(
+            SUPABASE_URL,
+            SUPABASE_ANON_KEY,
+            {
+              global: {
+                headers: {
+                  Authorization: `Bearer ${session.access_token}`
+                }
+              }
+            }
+          );
+          
+          // Retry with authenticated client
+          const { error: retryError } = await authenticatedSupabase
+            .from('accounts')
+            .insert({
+              user_id: userId,
+              account_number: checkingAccountNumber,
+              account_type: 'checking',
+              account_name: 'My Checking Account',
+              balance: 0.00,
+              available_balance: 0.00,
+              account_status: 'active'
+            });
+            
+          if (retryError) {
+            throw new Error(`Failed to create checking account: ${retryError.message}`);
+          }
+        } else {
+          throw new Error(`Failed to create checking account: ${checkingError.message}`);
+        }
+      } else {
+        throw new Error(`Failed to create checking account: ${checkingError.message}`);
+      }
     }
 
     // Generate unique account number for savings account
     const savingsAccountNumber = await generateAccountNumber();
 
     // Create savings account with new unique account number
-    const { error: savingsError } = await client
+    const { error: savingsError } = await supabase
       .from('accounts')
       .insert({
         user_id: userId,
@@ -196,14 +226,56 @@ export const createUserAccounts = async (userId: string, checkingAccountNumber: 
       });
 
     if (savingsError) {
-      throw new Error(`Failed to create savings account: ${savingsError.message}`);
+      console.error('Savings account creation error:', savingsError);
+      
+      // If it's a permission error and we have a session, retry
+      if (savingsError.message.includes('permission denied') && session?.access_token) {
+        console.log('Retrying savings account with explicit session context...');
+        
+        const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+        const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        
+        const authenticatedSupabase = createClient<Database>(
+          SUPABASE_URL,
+          SUPABASE_ANON_KEY,
+          {
+            global: {
+              headers: {
+                Authorization: `Bearer ${session.access_token}`
+              }
+            }
+          }
+        );
+        
+        const { error: retryError } = await authenticatedSupabase
+          .from('accounts')
+          .insert({
+            user_id: userId,
+            account_number: savingsAccountNumber,
+            account_type: 'savings',
+            account_name: 'My Savings Account',
+            balance: 0.00,
+            available_balance: 0.00,
+            account_status: 'active',
+            interest_rate: 0.0100
+          });
+          
+        if (retryError) {
+          throw new Error(`Failed to create savings account: ${retryError.message}`);
+        }
+      } else {
+        throw new Error(`Failed to create savings account: ${savingsError.message}`);
+      }
     }
 
     return { checkingAccountNumber, savingsAccountNumber };
   } catch (error) {
+    console.error('Account creation error:', error);
     throw error;
   }
 };
+
+
 
 /**
  * Complete user signup process with profile and role creation
@@ -214,22 +286,28 @@ export const createUserAccounts = async (userId: string, checkingAccountNumber: 
  */
 export const completeUserSignup = async (userId: string, profileData: any, session?: any) => {
   try {
+    console.log('Starting completeUserSignup for user:', userId);
+    
     // Create profile
     const { profile, accountNumber } = await createUserProfile(userId, profileData);
+    console.log('Profile created successfully with account number:', accountNumber);
 
     // Create checking and savings accounts
     const { checkingAccountNumber, savingsAccountNumber } = await createUserAccounts(userId, accountNumber, session);
+    console.log('Accounts created successfully:', { checkingAccountNumber, savingsAccountNumber });
 
     // Assign user role
     const role = await assignUserRole(userId, 'user');
+    console.log('User role assigned successfully');
 
     return { 
       profile, 
       role, 
-      accountNumber: checkingAccountNumber, // Primary account number (for email)
+      accountNumber: checkingAccountNumber,
       savingsAccountNumber 
     };
   } catch (error) {
+    console.error('Error in completeUserSignup:', error);
     throw error;
   }
 };

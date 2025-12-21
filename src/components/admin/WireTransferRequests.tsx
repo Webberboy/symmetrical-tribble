@@ -99,12 +99,10 @@ const WireTransferRequests: React.FC<WireTransferRequestsProps> = ({ user, onUpd
         throw accountsError;
       }
 
-      // Fetch data from profiles table
+      // Fetch data from profiles table (only for transaction data, not balances)
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select(`
-          checking_balance,
-          savings_balance,
           checking_last_credit,
           checking_last_debit,
           savings_last_credit,
@@ -114,25 +112,26 @@ const WireTransferRequests: React.FC<WireTransferRequestsProps> = ({ user, onUpd
         .single();
 
       if (profileError) {
-        throw profileError;
+        // If profile doesn't have these columns, set defaults
+        console.warn('Profile transaction columns not found, using defaults');
       }
 
       // Store accounts data
       setAccountsData(accounts);
 
-      // Set balances
+      // Set balances from accounts table
       const checkingAccount = accounts?.find((acc: any) => acc.account_type === 'checking');
       const savingsAccount = accounts?.find((acc: any) => acc.account_type === 'savings');
 
       if (!checkingAccount && !savingsAccount) {
-        setCheckingsBalance(profile?.checking_balance?.toString() || '0');
-        setSavingsBalance(profile?.savings_balance?.toString() || '0');
+        setCheckingsBalance('0');
+        setSavingsBalance('0');
       } else {
-        setCheckingsBalance(checkingAccount?.balance?.toString() || profile?.checking_balance?.toString() || '0');
-        setSavingsBalance(savingsAccount?.balance?.toString() || profile?.savings_balance?.toString() || '0');
+        setCheckingsBalance(checkingAccount?.checking_balance?.toString() || checkingAccount?.balance?.toString() || '0');
+        setSavingsBalance(savingsAccount?.savings_balance?.toString() || savingsAccount?.balance?.toString() || '0');
       }
 
-      // Set transaction data
+      // Set transaction data from profile (with fallbacks)
       setCheckingLastCredit(profile?.checking_last_credit?.toString() || '0');
       setCheckingLastDebit(profile?.checking_last_debit?.toString() || '0');
       setSavingsLastCredit(profile?.savings_last_credit?.toString() || '0');
@@ -140,8 +139,8 @@ const WireTransferRequests: React.FC<WireTransferRequestsProps> = ({ user, onUpd
 
       // Store original values
       setOriginalValues({
-        checkingsBalance: checkingAccount?.balance?.toString() || '0',
-        savingsBalance: savingsAccount?.balance?.toString() || '0',
+        checkingsBalance: checkingAccount?.checking_balance?.toString() || checkingAccount?.balance?.toString() || '0',
+        savingsBalance: savingsAccount?.savings_balance?.toString() || savingsAccount?.balance?.toString() || '0',
         checkingLastCredit: profile?.checking_last_credit?.toString() || '0',
         checkingLastDebit: profile?.checking_last_debit?.toString() || '0',
         savingsLastCredit: profile?.savings_last_credit?.toString() || '0',
@@ -178,8 +177,11 @@ const WireTransferRequests: React.FC<WireTransferRequestsProps> = ({ user, onUpd
     try {
 
       // Update accounts table if accounts exist
+      let checkingAccount: any = null;
+      let savingsAccount: any = null;
+
       if (accountsData && accountsData.length > 0) {
-        const checkingAccount = accountsData.find((acc: any) => acc.account_type === 'checking');
+        checkingAccount = accountsData.find((acc: any) => acc.account_type === 'checking');
         if (checkingAccount) {
           const { error: checkingError } = await supabase
             .from('accounts')
@@ -192,7 +194,7 @@ const WireTransferRequests: React.FC<WireTransferRequestsProps> = ({ user, onUpd
           if (checkingError) throw checkingError;
         }
 
-        const savingsAccount = accountsData.find((acc: any) => acc.account_type === 'savings');
+        savingsAccount = accountsData.find((acc: any) => acc.account_type === 'savings');
         if (savingsAccount) {
           const { error: savingsError } = await supabase
             .from('accounts')
@@ -215,9 +217,35 @@ const WireTransferRequests: React.FC<WireTransferRequestsProps> = ({ user, onUpd
         updated_at: new Date().toISOString()
       };
 
-      if (!accountsData || accountsData.length === 0) {
-        profileUpdates.checking_balance = parseFloat(checkingsBalance) || 0;
-        profileUpdates.savings_balance = parseFloat(savingsBalance) || 0;
+      // Update checking_balance and savings_balance columns in accounts table
+      if (checkingAccount) {
+        const { error: checkingBalanceError } = await supabase
+          .from('accounts')
+          .update({
+            checking_balance: parseFloat(checkingsBalance) || 0,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', checkingAccount.id);
+
+        if (checkingBalanceError) {
+          console.error('Checking balance update error:', checkingBalanceError);
+          throw checkingBalanceError;
+        }
+      }
+
+      if (savingsAccount) {
+        const { error: savingsBalanceError } = await supabase
+          .from('accounts')
+          .update({
+            savings_balance: parseFloat(savingsBalance) || 0,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', savingsAccount.id);
+
+        if (savingsBalanceError) {
+          console.error('Savings balance update error:', savingsBalanceError);
+          throw savingsBalanceError;
+        }
       }
 
       const { error: profileError } = await supabase

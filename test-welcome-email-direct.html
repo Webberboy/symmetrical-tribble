@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Welcome Email Direct</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Test Welcome Email Direct Call</h1>
+    <button id="testWelcomeEmail">Test Welcome Email Function</button>
+    <div id="result"></div>
+
+    <script>
+        // Initialize Supabase client with service role key
+        const supabaseUrl = 'https://jovrfejbutfrzvclchuf.supabase.co';
+        const serviceRoleKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvdnJmZWpidWZyenZjbGNodWYiLCJyb2xlIjoic2VydmljZV9yb2xlIiwiaWF0IjoxNzM0NTU5NTk5LCJleHAiOjIwNTAxMzU1OTl9.3I3CQgN5PHb5smnH5l4WiUe0e5KN7b5S6z0gBcTo9So';
+        
+        const adminSupabase = window.supabase.createClient(supabaseUrl, serviceRoleKey);
+
+        document.getElementById('testWelcomeEmail').addEventListener('click', async () => {
+            try {
+                console.log('Testing welcome email function directly...');
+                
+                // Create test payload that matches what the edge function expects
+                const testPayload = {
+                    type: 'INSERT',
+                    table: 'profiles',
+                    schema: 'public',
+                    record: {
+                        id: 'test-user-id-' + Date.now(),
+                        email: 'test.welcome.' + Date.now() + '@example.com',
+                        first_name: 'Test',
+                        full_name: 'Test User',
+                        account_number: 'TEST' + Date.now(),
+                        created_at: new Date().toISOString()
+                    },
+                    old_record: null
+                };
+
+                console.log('Calling welcome email function with payload:', testPayload);
+
+                const { data, error } = await adminSupabase.functions.invoke('send-welcome-email', {
+                    body: testPayload
+                });
+
+                if (error) {
+                    console.error('Welcome email function error:', error);
+                    document.getElementById('result').innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+                    return;
+                }
+
+                console.log('Welcome email function response:', data);
+                document.getElementById('result').innerHTML = `<p style="color: green;">Welcome email sent successfully! Check your email.</p>`;
+
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('result').innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

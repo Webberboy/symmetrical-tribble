@@ -14,6 +14,7 @@ import ResetPassword from "./pages/ResetPassword";
 import ResetPasswordVerify from "./pages/ResetPasswordVerify";
 import OTPVerification from "./pages/OTPVerification";
 import AdminLogin from "./pages/AdminLogin";
+import FlexibleAdminLogin from "./pages/FlexibleAdminLogin";
 import Dashboard from "./pages/Dashboard";
 import WireAccountSelection from "./pages/WireAccountSelection";
 import WireAmountEntry from "./pages/WireAmountEntry";
@@ -93,7 +94,7 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/reset-password-verify" element={<ResetPasswordVerify />} />
             <Route path="/otp-verification" element={<OTPVerification />} />
-            <Route path="/xk9p2vnz7q" element={<AdminLogin />} />
+            <Route path="/xk9p2vnz7q" element={<FlexibleAdminLogin />} />
             <Route path="/home" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/dash" element={<Dash />} />

@@ -14,7 +14,8 @@ import {
   ArrowRightOnRectangleIcon as LogOut,
   MagnifyingGlassIcon as Search,
   PencilIcon as Edit,
-  Cog6ToothIcon as Settings
+  Cog6ToothIcon as Settings,
+  PlusIcon
 } from '@heroicons/react/24/outline';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -26,6 +27,7 @@ import NotificationManagement from '@/components/admin/NotificationManagement';
 import TransactionBuilder from '@/components/admin/TransactionBuilder';
 import MessagesManagement from '@/components/admin/MessagesManagement';
 import InvestmentManagement from '@/components/admin/InvestmentManagement';
+import UserCreation from '@/components/admin/UserCreation';
 import { useSettings } from '@/contexts/SettingsContext';
 
 interface Profile {
@@ -54,13 +56,14 @@ interface Profile {
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { websiteName } = useSettings();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
   const [users, setUsers] = useState<Profile[]>([]);
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isUserCreationOpen, setIsUserCreationOpen] = useState(false);
   const [usersWithMessages, setUsersWithMessages] = useState<Map<string, number>>(new Map());
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     checkAdminAccess();
@@ -94,9 +97,14 @@ const AdminDashboard = () => {
 
   const checkAdminAccess = async () => {
     try {
+      console.log('🔐 Checking admin access...');
+      
       // Check for test admin session first
       const testSession = localStorage.getItem('testAdminSession');
+      console.log('🧪 Test admin session:', testSession);
+      
       if (testSession === 'true') {
+        console.log('✅ Test admin session active');
         setIsAdmin(true);
         setIsLoading(false);
         loadUsers();
@@ -105,7 +113,10 @@ const AdminDashboard = () => {
 
       // Check if admin user is stored in localStorage
       const adminUser = localStorage.getItem('adminUser');
+      console.log('👤 Admin user in localStorage:', adminUser);
+      
       if (!adminUser) {
+        console.log('❌ No admin user found in localStorage');
         toast.error("Please log in as admin");
         navigate("/xk9p2vnz7q");
         setIsLoading(false);
@@ -113,7 +124,10 @@ const AdminDashboard = () => {
       }
 
       const adminData = JSON.parse(adminUser);
+      console.log('📋 Admin data:', adminData);
+      
       if (!adminData.isAdmin) {
+        console.log('❌ User is not admin');
         toast.error("Access denied. Admin privileges required.");
         navigate("/xk9p2vnz7q");
         setIsLoading(false);
@@ -121,6 +135,7 @@ const AdminDashboard = () => {
       }
 
       // Verify admin still exists and is active in the admin table
+      console.log('🔍 Verifying admin in database...');
       const { data: adminCheck, error: adminError } = await supabase
         .from('admin')
         .select('id, email, role, is_active')
@@ -128,7 +143,10 @@ const AdminDashboard = () => {
         .eq('is_active', true)
         .single();
 
+      console.log('📊 Admin check result:', { data: adminCheck, error: adminError });
+
       if (adminError || !adminCheck) {
+        console.log('❌ Admin verification failed:', adminError);
         toast.error("Access denied. Admin privileges required.");
         localStorage.removeItem('adminUser');
         navigate("/xk9p2vnz7q");
@@ -136,10 +154,12 @@ const AdminDashboard = () => {
         return;
       }
 
+      console.log('✅ Admin access granted');
       setIsAdmin(true);
       setIsLoading(false); // Show UI immediately
       loadUsers(); // Load users in background without await
     } catch (error: any) {
+      console.error('💥 Admin access error:', error);
       toast.error('Failed to verify admin access');
       navigate("/xk9p2vnz7q");
       setIsLoading(false);
@@ -148,6 +168,8 @@ const AdminDashboard = () => {
 
   const loadUsers = async () => {
     try {
+      console.log('🔄 Loading users from profiles table...');
+      
       // Run both queries in parallel for faster loading
       const [profilesResult, messagesResult] = await Promise.all([
         supabase
@@ -160,9 +182,16 @@ const AdminDashboard = () => {
           .eq('status', 'pending')
       ]);
 
+      console.log('📊 Profiles result:', profilesResult);
+      console.log('📨 Messages result:', messagesResult);
+
       if (profilesResult.error) {
+        console.error('❌ Profiles error:', profilesResult.error);
         throw profilesResult.error;
       }
+      
+      console.log('✅ Found', profilesResult.data?.length || 0, 'users');
+      console.log('👥 Users data:', profilesResult.data);
       
       setUsers(profilesResult.data || []);
 
@@ -174,8 +203,10 @@ const AdminDashboard = () => {
           messageCounts.set(msg.user_id, count + 1);
         });
         setUsersWithMessages(messageCounts);
+        console.log('💬 Found pending messages for', messageCounts.size, 'users');
       }
     } catch (error: any) {
+      console.error('💥 Failed to load users:', error);
       toast.error('Failed to load users: ' + error.message);
     }
   };
@@ -252,6 +283,12 @@ const AdminDashboard = () => {
     navigate("/xk9p2vnz7q");
   };
 
+  const handleUserCreated = () => {
+    setIsUserCreationOpen(false);
+    loadUsers();
+    toast.success('User account created successfully');
+  };
+
   const filteredUsers = users.filter(user =>
     user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -278,6 +315,13 @@ const AdminDashboard = () => {
             <h1 className="text-xl sm:text-2xl font-bold text-white">{websiteName} - Admin Panel</h1>
             <nav className="flex gap-4 items-center">
               <Button 
+                onClick={() => setIsUserCreationOpen(true)}
+                className="text-sm text-white hover:bg-gray-700"
+              >
+                <PlusIcon className="w-4 h-4 mr-2" />
+                Create User
+              </Button>
+              <Button 
                 variant="ghost" 
                 onClick={() => navigate('/emailsending')} 
                 className="text-sm text-white hover:bg-gray-700"
@@ -286,6 +330,19 @@ const AdminDashboard = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
                 Send Emails
+              </Button>
+              <Button 
+                variant="ghost" 
+                onClick={() => {
+                  console.log('🔄 Manual user reload triggered');
+                  loadUsers();
+                }} 
+                className="text-sm text-white hover:bg-gray-700"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Refresh Users
               </Button>
               <Button 
                 variant="ghost" 
@@ -309,6 +366,38 @@ const AdminDashboard = () => {
           <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">User Management</h2>
           <p className="text-gray-400">View and manage all user accounts</p>
         </div>
+
+        {/* Debug Information Panel */}
+        <Card className="bg-gray-800 border-gray-700 mb-6">
+          <CardHeader>
+            <CardTitle className="text-white text-lg">Debug Information</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div>
+                <Label className="text-gray-300">Total Users Loaded</Label>
+                <div className="text-white font-mono">{users.length}</div>
+              </div>
+              <div>
+                <Label className="text-gray-300">Users with Messages</Label>
+                <div className="text-white font-mono">{usersWithMessages.size}</div>
+              </div>
+              <div>
+                <Label className="text-gray-300">Search Filter</Label>
+                <div className="text-white font-mono">{searchTerm || 'None'}</div>
+              </div>
+            </div>
+            <div className="mt-4">
+              <Label className="text-gray-300">Supabase Configuration</Label>
+              <div className="text-gray-400 font-mono text-xs break-all">
+                URL: {import.meta.env.VITE_SUPABASE_URL || 'Not set'}
+              </div>
+              <div className="text-gray-400 font-mono text-xs">
+                Key: {import.meta.env.VITE_SUPABASE_ANON_KEY ? 'Set (' + import.meta.env.VITE_SUPABASE_ANON_KEY.length + ' chars)' : 'Not set'}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card className="bg-gray-800 border-gray-700">
           <CardHeader>
@@ -619,6 +708,13 @@ const AdminDashboard = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* User Creation Dialog */}
+      <UserCreation 
+        isOpen={isUserCreationOpen} 
+        onClose={() => setIsUserCreationOpen(false)} 
+        onUserCreated={handleUserCreated} 
+      />
     </div>
   );
 };

@@ -63,15 +63,17 @@ const WireSuccess: React.FC = () => {
             user_id: user.id,
             type: 'debit',
             amount: authData.totalAmount,
+            merchant: authData.recipientData.recipientName,
             description: `Wire transfer to ${authData.recipientData.recipientName}`,
-            status: 'pending',
-            recipient_account: authData.accountInfo.recipientAccountNumber
+            category: 'wire_transfer',
+            status: 'pending'
           })
           .select()
           .single();
 
         if (txnError) {
           toast.error('Failed to record transaction');
+          console.error('Transaction error:', txnError);
         }
 
         // Create wire transfer record
@@ -79,24 +81,12 @@ const WireSuccess: React.FC = () => {
           .from('wire_transfers')
           .insert({
             user_id: user.id,
-            transaction_id: transactionData?.id,
             amount: parseFloat(authData.amount),
-            fee: authData.wireTransferFee,
-            total_amount: authData.totalAmount,
-            from_account_id: user.id, // Use user ID as account ID since accounts are stored in profiles table
-            from_account_number: authData.fromAccount.accountNumber || 'N/A',
             recipient_name: authData.recipientData.recipientName,
-            recipient_bank_name: authData.recipientData.bankName,
-            recipient_routing_number: authData.accountInfo.recipientRoutingNumber || authData.recipientData.routingNumber,
-            recipient_account_number: authData.accountInfo.recipientAccountNumber,
-            recipient_bank_address: authData.recipientData.bankAddress,
-            account_type: authData.accountInfo?.recipientAccountType || 'checking',
-            reference_message: authData.accountInfo?.referenceMessage || null,
-            swift_code: authData.accountInfo?.swiftCode || null,
-            confirmation_number: confirmNum,
-            status: 'processing',
-            processing_time: authData.processingTime,
-            authorized_at: authData.authorizedAt
+            recipient_account: authData.accountInfo.recipientAccountNumber,
+            recipient_routing: authData.accountInfo.recipientRoutingNumber || authData.recipientData.routingNumber,
+            recipient_bank: authData.recipientData.bankName,
+            status: 'pending'
           });
 
         if (wireError) {

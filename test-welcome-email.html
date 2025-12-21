@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Welcome Email</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Test Welcome Email Functionality</h1>
+    <p>This will create a test profile to trigger the welcome email webhook.</p>
+    <button onclick="testWelcomeEmail()">Create Test Profile & Trigger Welcome Email</button>
+    <div id="result"></div>
+
+    <script>
+        // Initialize Supabase client with your project details
+        const supabaseUrl = 'https://jovrfejbutfrzvclchuf.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvdnJmZWpidXRmcnp2Y2xjaHVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwNjgwOTksImV4cCI6MjA4MTY0NDA5OX0.torsxZlwh29SHD6iBp6dn-n3y_ZLhWe9Pqk4iFM_SX8';
+        
+        const client = supabase.createClient(supabaseUrl, supabaseKey);
+
+        async function testWelcomeEmail() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '';
+            
+            try {
+                // Step 1: Create a test auth user
+                const testEmail = 'test-welcome-' + Date.now() + '@example.com';
+                const testPassword = 'TestPassword123!';
+                
+                resultDiv.innerHTML += `<p>🔄 Creating test auth user with email: ${testEmail}</p>`;
+                
+                const { data: authData, error: authError } = await client.auth.signUp({
+                    email: testEmail,
+                    password: testPassword,
+                    options: {
+                        data: {
+                            first_name: 'Test',
+                            last_name: 'Welcome'
+                        }
+                    }
+                });
+
+                if (authError) {
+                    resultDiv.innerHTML += `<p style="color: red;">❌ Auth user creation failed: ${authError.message}</p>`;
+                    return;
+                }
+
+                if (!authData.user) {
+                    resultDiv.innerHTML += `<p style="color: red;">❌ No user data returned from auth</p>`;
+                    return;
+                }
+
+                resultDiv.innerHTML += `<p style="color: green;">✅ Auth user created: ${authData.user.id}</p>`;
+
+                // Step 2: Create a profile (this should trigger the welcome email webhook)
+                const testProfileData = {
+                    id: authData.user.id,
+                    full_name: 'Test Welcome User',
+                    first_name: 'Test',
+                    last_name: 'Welcome',
+                    email: testEmail,
+                    phone: '+15551234567',
+                    country_code: '+1',
+                    account_type: 'checking',
+                    account_number: '40125' + Math.floor(100000 + Math.random() * 900000), // Random account number
+                    date_of_birth: '1990-01-01',
+                    street_address: '123 Test St',
+                    city: 'Test City',
+                    state: 'TS',
+                    zip_code: '12345',
+                    country: 'United States',
+                    account_status: 'active',
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                };
+                
+                resultDiv.innerHTML += `<p>🔄 Creating profile with account number: ${testProfileData.account_number}</p>`;
+                
+                const { data: profileData, error: profileError } = await client
+                    .from('profiles')
+                    .insert(testProfileData)
+                    .select()
+                    .single();
+                
+                if (profileError) {
+                    resultDiv.innerHTML += `<p style="color: red;">❌ Profile creation failed: ${profileError.message}</p>`;
+                    return;
+                }
+
+                resultDiv.innerHTML += `<p style="color: green;">✅ Profile created successfully!</p>`;
+                resultDiv.innerHTML += `<p style="color: green;">📧 Welcome email should be triggered automatically via webhook.</p>`;
+                resultDiv.innerHTML += `<p style="color: blue;">ℹ️ Check your email provider for the welcome email to: ${testEmail}</p>`;
+                resultDiv.innerHTML += `<p style="color: blue;">ℹ️ Account Number: ${testProfileData.account_number}</p>`;
+
+                // Step 3: Check if we can verify the webhook was called (this might take a few seconds)
+                resultDiv.innerHTML += `<p>⏳ Waiting 5 seconds to check if webhook was triggered...</p>`;
+                
+                setTimeout(async () => {
+                    resultDiv.innerHTML += `<p>✅ Test completed! The welcome email webhook should have been triggered.</p>`;
+                    resultDiv.innerHTML += `<p>📝 Note: You can check the Supabase dashboard logs to see if the webhook was called successfully.</p>`;
+                }, 5000);
+
+            } catch (error) {
+                resultDiv.innerHTML += `<p style="color: red;">❌ Test error: ${error.message}</p>`;
+            }
+        }
+
+        // Add some helpful information
+        document.addEventListener('DOMContentLoaded', function() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML += `
+                <div style="background-color: #f0f8ff; padding: 15px; border-radius: 5px; margin-top: 20px;">
+                    <h3>📋 Test Information:</h3>
+                    <ul>
+                        <li>This test will create a real auth user and profile in your Supabase database</li>
+                        <li>The profile creation should trigger the welcome email webhook</li>
+                        <li>The webhook will call your edge function to send the welcome email</li>
+                        <li>Check your email provider for the welcome email</li>
+                        <li>You can also check the Supabase dashboard for webhook logs</li>
+                    </ul>
+                </div>
+            `;
+        });
+    </script>
+</body>
+</html>

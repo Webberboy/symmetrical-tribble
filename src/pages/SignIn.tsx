@@ -37,81 +37,59 @@ const SignIn = () => {
     setLoading(true);
 
     try {
-      // Step 1: Validate credentials and get email from account number
-      const result = await validateCredentials(accountNumber, password);
-      
-      // Check if user is banned
-      if (result.isBanned) {
-        // Get support email from settings
-        const { data: settingsData } = await supabase
-          .from('white_label_settings')
-          .select('support_email')
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
-        
-        const supportEmail = settingsData?.support_email || 'support@unitycapital.com';
-        
-        toast.error(
-          <div className="space-y-2">
-            <p className="font-semibold">Account Suspended</p>
-            <p className="text-sm">{result.banReason}</p>
-            <p className="text-sm">Please contact support at: <a href={`mailto:${supportEmail}`} className="underline font-semibold">{supportEmail}</a></p>
-          </div>,
-          { duration: 8000 }
-        );
-        setLoading(false);
-        return;
-      }
-      
-      if (!result.valid || !result.email || !result.userId) {
-        toast.error(result.error || "Invalid account number or password");
+      // Simple approach: Get email from account number and login directly
+      const { data: userEmail, error: emailError } = await supabase
+        .rpc('get_email_by_account', { account_num: accountNumber.toUpperCase() }) as { data: string | null, error: any };
+
+      if (emailError || !userEmail) {
+        toast.error("Invalid account number or password");
         setLoading(false);
         return;
       }
 
-      // Step 2: Direct login - skip OTP and login immediately
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: result.email,
+      // Direct login with email and password
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: userEmail,
         password: password,
       });
 
-      if (error || !data?.user) {
+      if (authError || !authData?.user) {
+        toast.error("Invalid account number or password");
+        setLoading(false);
+        return;
+      }
+
+      // Get basic user info in one call
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, email, first_name, last_name, full_name, account_number, balance, is_banned, ban_reason')
+        .eq('id', authData.user.id)
+        .single();
+
+      if (profileError || !profile) {
         toast.error("Login failed. Please try again.");
         setLoading(false);
         return;
       }
 
-      // Step 3: Get user profile and save to localStorage
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', data.user.id)
-        .single();
-
-      if (profile) {
-        const userData = {
-          id: profile.id,
-          email: profile.email,
-          firstName: profile.first_name || profile.full_name?.split(' ')[0] || 'User',
-          lastName: profile.last_name || profile.full_name?.split(' ').slice(1).join(' ') || '',
-          accountNumber: profile.account_number,
-          balance: profile.balance || 0
-        };
-        localStorage.setItem("user", JSON.stringify(userData));
+      // Check if banned
+      if (profile.is_banned) {
+        await supabase.auth.signOut(); // Sign out banned user
+        toast.error("Account suspended. Please contact support.");
+        setLoading(false);
+        return;
       }
 
-      // Step 4: Send login notification email (optional, don't block login if it fails)
-      try {
-        await supabase.functions.invoke('send-login-notification', {
-          body: {
-            email: result.email,
-            userName: profile?.first_name || 'User'
-          }
-        });
-      } catch (e) {
-        // Silently fail - login notification is not critical
-      }
+      // Save user data to localStorage
+      const userData = {
+        id: profile.id,
+        email: profile.email,
+        firstName: profile.first_name || profile.full_name?.split(' ')[0] || 'User',
+        lastName: profile.last_name || profile.full_name?.split(' ').slice(1).join(' ') || '',
+        accountNumber: profile.account_number,
+        balance: profile.balance || 0
+      };
+      localStorage.setItem("user", JSON.stringify(userData));
 
       toast.success("Login successful!");
       navigate("/dashboard");

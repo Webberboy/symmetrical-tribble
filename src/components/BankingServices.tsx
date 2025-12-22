@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useSettings } from '@/contexts/SettingsContext';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   ArrowUpRightIcon as ArrowUpRight, 
   CurrencyDollarIcon as Bitcoin, 
@@ -184,6 +185,46 @@ const BankingServices: React.FC = () => {
     }
   };
 
+  const handleWireTransferClick = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate('/signin');
+        return;
+      }
+
+      // Fetch checking account
+      const { data: accountsData, error } = await supabase
+        .from('accounts')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('account_type', 'checking')
+        .single();
+
+      if (error || !accountsData) {
+        // If no checking account found, fall back to normal flow
+        navigate('/transfer');
+        return;
+      }
+
+      // Create checking account object and store in localStorage
+      const checkingAccount = {
+        id: 'checking',
+        name: 'My Checking',
+        type: 'Checking Account',
+        balance: accountsData.checking_balance || 0.00,
+        accountNumber: accountsData.account_number,
+        account_type: 'checking'
+      };
+
+      localStorage.setItem('wireTransferAccount', JSON.stringify(checkingAccount));
+      navigate('/wire-amount-entry');
+    } catch (error) {
+      // If any error occurs, fall back to normal flow
+      navigate('/transfer');
+    }
+  };
+
   return (
     <div className="w-full">
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -193,7 +234,14 @@ const BankingServices: React.FC = () => {
             <Card
               key={service.id}
               className={`relative overflow-hidden ${getCategoryColor(service.category)} border shadow-card hover:shadow-card-hover transition-all duration-200 cursor-pointer group`}
-              onClick={() => service.path && navigate(service.path)}
+              onClick={() => {
+                if (service.id === 'wire-transfer' && service.path) {
+                  // Auto-select checking account and skip selection page
+                  handleWireTransferClick();
+                } else if (service.path) {
+                  navigate(service.path);
+                }
+              }}
             >
               <div className="p-4 text-center">
                 <div className="flex justify-center mb-3">

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Mail, CheckCircle, Loader2, RefreshCw, ArrowLeft, Lightbulb } from "lucide-react";
 import { completeUserSignup } from "@/lib/accountUtils";
+import { sendWelcomeEmail } from "@/lib/emailService";
 
 const VerifyEmail = () => {
   const navigate = useNavigate();
@@ -175,6 +176,32 @@ const VerifyEmail = () => {
         verifyData.user.id,
         signupData
       );
+
+      // Send welcome email
+      try {
+        console.log('=== Sending welcome email ===');
+        console.log('Email:', verifyData.user.email);
+        console.log('Account number:', accountNumber);
+        console.log('First name:', signupData.firstName || signupData.first_name);
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token && accountNumber) {
+          const welcomeResult = await sendWelcomeEmail(
+            verifyData.user.email!,
+            accountNumber,
+            signupData.firstName || signupData.first_name
+          );
+          
+          if (welcomeResult.success) {
+            console.log('Welcome email sent successfully');
+          } else {
+            console.error('Failed to send welcome email:', welcomeResult.error);
+          }
+        }
+      } catch (emailError) {
+        console.error('Error sending welcome email:', emailError);
+        // Don't fail the signup if welcome email fails
+      }
 
       // Cleanup database and localStorage
       await supabase

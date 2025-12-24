@@ -149,7 +149,16 @@ const SignUp = () => {
     e.preventDefault();
     setLoading(true);
 
-    console.log('🚀 Signup process started with email:', signupData.email);
+    console.log('🚀 [DEBUG] Signup process started with email:', signupData.email);
+    console.log('📝 [DEBUG] Complete signup data:', {
+      email: signupData.email,
+      firstName: signupData.firstName,
+      lastName: signupData.lastName,
+      phone: `${signupData.countryCode}${signupData.phone}`,
+      accountType: signupData.accountType,
+      dateOfBirth: signupData.dateOfBirth,
+      hasIdDocument: !!signupData.idDocument
+    });
 
     // Validation
     if (signupData.password !== signupData.confirmPassword) {
@@ -302,6 +311,12 @@ const SignUp = () => {
       // Check if email confirmation is required
       const emailConfirmationRequired = !authData.session;
       
+      console.log('📧 [DEBUG] Email confirmation status:', {
+        emailConfirmationRequired,
+        hasSession: !!authData.session,
+        sessionData: authData.session ? 'Session exists' : 'No session'
+      });
+      
       if (emailConfirmationRequired) {
         // Convert ID document to base64 if provided
         let idDocumentData = null;
@@ -436,6 +451,33 @@ const SignUp = () => {
 
       // Step 3: Complete signup
       setSignupStep('complete');
+      
+      // Send welcome email
+      try {
+        console.log('📧 [DEBUG] Sending welcome email via emailService:', {
+          email: signupData.email,
+          firstName: signupData.firstName,
+          accountNumber: accountNumber
+        });
+        
+        const { sendWelcomeEmail } = await import("@/lib/emailService");
+        const result = await sendWelcomeEmail(
+          signupData.email,
+          signupData.firstName,
+          accountNumber
+        );
+        
+        console.log('📧 [DEBUG] Welcome email result:', result);
+        
+        if (result.success) {
+          console.log('✅ [DEBUG] Welcome email sent successfully');
+        } else {
+          console.log('❌ [DEBUG] Welcome email failed:', result.error);
+        }
+      } catch (emailError: any) {
+        console.log('❌ [DEBUG] Welcome email error caught:', emailError);
+        // Don't block signup if email fails
+      }
       
       toast.success(
         `🎉 Welcome to your account! Your Account Number: ${accountNumber}. Please save this for login.`,

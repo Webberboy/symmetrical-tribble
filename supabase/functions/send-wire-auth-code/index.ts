@@ -168,158 +168,77 @@ serve(async (req) => {
         to: [email],
         subject: 'Wire Transfer Authorization Code',
         html: `
-<!DOCTYPE html>
-<html>
-<head>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      line-height: 1.6;
-      color: #333;
-      margin: 0;
-      padding: 0;
-      background-color: #f8f9fa;
-    }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-      background-color: #ffffff;
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    .header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 30px 20px;
-      text-align: center;
-      border-radius: 10px 10px 0 0;
-      margin: -20px -20px 20px -20px;
-    }
-    .header h1 {
-      margin: 0;
-      font-size: 28px;
-      font-weight: 700;
-    }
-    .header p {
-      margin: 5px 0 0 0;
-      font-size: 16px;
-      opacity: 0.9;
-    }
-    .content {
-      padding: 20px 0;
-    }
-    .code-box {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 25px;
-      text-align: center;
-      font-size: 36px;
-      font-weight: bold;
-      letter-spacing: 10px;
-      margin: 25px 0;
-      border-radius: 10px;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-      font-family: 'Courier New', monospace;
-    }
-    .transfer-details {
-      background-color: #f8f9fa;
-      padding: 20px;
-      border-radius: 10px;
-      margin: 20px 0;
-      border: 1px solid #e9ecef;
-    }
-    .transfer-details h3 {
-      color: #667eea;
-      margin-top: 0;
-      font-size: 18px;
-      font-weight: 600;
-    }
-    .transfer-details p {
-      margin: 8px 0;
-      font-size: 14px;
-    }
-    .transfer-details strong {
-      color: #495057;
-    }
-    .warning {
-      background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-      border: 1px solid #ffc107;
-      padding: 20px;
-      border-radius: 10px;
-      margin-top: 20px;
-    }
-    .warning p {
-      margin: 0 0 10px 0;
-      font-weight: 600;
-      color: #856404;
-    }
-    .warning ul {
-      margin: 0;
-      padding-left: 20px;
-      color: #856404;
-    }
-    .warning li {
-      margin: 5px 0;
-      font-size: 14px;
-    }
-    .footer {
-      text-align: center;
-      margin-top: 30px;
-      color: #6c757d;
-      font-size: 12px;
-      line-height: 1.5;
-    }
-    .footer p {
-      margin: 5px 0;
-    }
-    .highlight {
-      color: #667eea;
-      font-weight: 600;
-    }
-  </style>
-</head>
-<body>
-  <div className="container">
-    <div className="header">
-      <h1>Unity Capital Bank</h1>
-      <p>Modern Financial Management</p>
-    </div>
-    
-    <div className="content">
-      <h2 style="color: #667eea; margin-bottom: 15px;">Wire Transfer Authorization</h2>
-      <p style="font-size: 16px; margin-bottom: 20px;">You are attempting to authorize a wire transfer. Please use the authorization code below to complete the authorization:</p>
-      
-      <div className="code-box">
-        ${code}
-      </div>
-      
-      <div className="transfer-details">
-        <h3>Transfer Details</h3>
-        <p><strong>Amount:</strong> $${validatedAmount.toFixed(2)}</p>
-        <p><strong>Recipient:</strong> ${recipient}</p>
-        <p><strong>Valid for:</strong> <span className="highlight">10 minutes</span></p>
-      </div>
-      
-      <div className="warning">
-        <p><strong>⚠️ Security Alert</strong></p>
-        <ul>
-          <li>This authorization code is valid for 10 minutes only</li>
-          <li>Never share this code with anyone</li>
-          <li>Unity Capital Bank will never ask for your authorization code via phone or email</li>
-          <li>If you didn't initiate this transfer, contact us immediately</li>
-        </ul>
-      </div>
-    </div>
-    
-    <div className="footer">
-      <p><strong>Unity Capital Bank</strong></p>
-      <p>Modern Financial Management Made Simple & Secure</p>
-      <p>For support, contact us at support@unitycaplbk.org</p>
-      <p>&copy; ${new Date().getFullYear()} Unity Capital Bank. All rights reserved.</p>
-    </div>
-  </div>
-</body>
+<!DOCTYPE html> 
+<html> 
+  <head> 
+    <meta charset="utf-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>Wire Transfer Authorization</title> 
+  </head> 
+  <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f3f4f6;"> 
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 0;"> 
+      <tr> 
+        <td align="center"> 
+          <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"> 
+            <tr> 
+              <td style="background-color: #dc2626; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;"> 
+                <h1 style="color: #ffffff; margin: 0; font-size: 28px;">Unity Capital Bank</h1> 
+                <p style="color: #fee2e2; margin: 10px 0 0 0; font-size: 14px;">Wire Transfer Authorization</p> 
+              </td> 
+            </tr> 
+            <tr> 
+              <td style="padding: 40px 30px;"> 
+                <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 24px;">Wire Transfer Authorization Code</h2> 
+                <p style="color: #4b5563; line-height: 1.6; margin: 0 0 20px 0;"> 
+                  You have initiated a wire transfer. Please use the following authorization code to complete your transaction. 
+                </p> 
+                <p style="color: #4b5563; line-height: 1.6; margin: 0 0 20px 0; font-weight: 600;"> 
+                  Your authorization code is: 
+                </p> 
+                <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;"> 
+                  <tr> 
+                    <td align="center"> 
+                      <div style="display: inline-block; background-color: #dc2626; border: 2px solid #b91c1c; border-radius: 8px; padding: 20px 40px;"> 
+                        <span style="font-size: 36px; font-weight: bold; color: #ffffff; letter-spacing: 8px; font-family: 'Courier New', monospace;"> 
+                          ${code} 
+                        </span> 
+                      </div> 
+                     </td> 
+                  </tr> 
+                </table> 
+                <div style="background-color: #f8fafc; border-left: 4px solid #2563eb; padding: 16px; margin: 20px 0; border-radius: 4px;"> 
+                  <p style="color: #1e40af; font-size: 14px; line-height: 1.6; margin: 0;"> 
+                    <strong>💰 Transfer Details:</strong> Amount: $${validatedAmount.toFixed(2)}, Recipient: ${recipient}, Date: ${new Date().toLocaleDateString()} 
+                  </p> 
+                </div> 
+                <div style="background-color: #fef2f2; border-left: 4px solid #dc2626; padding: 16px; margin: 20px 0; border-radius: 4px;"> 
+                  <p style="color: #b91c1c; font-size: 14px; line-height: 1.6; margin: 0;"> 
+                    <strong>⚠️ Security Warning:</strong> This code expires in 10 minutes. Never share this code with anyone. Unity Capital Bank will never ask for this code over the phone. If you didn't initiate this transfer, contact us immediately. 
+                  </p> 
+                </div> 
+                <p style="color: #dc2626; font-size: 14px; line-height: 1.6; margin: 20px 0; font-weight: 600; text-align: center;"> 
+                  ⏰ This code expires in 10 minutes 
+                </p> 
+                <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 20px 0 0 0;"> 
+                  Please enter this code in your banking application to authorize the wire transfer. 
+                </p> 
+              </td> 
+            </tr> 
+            <tr> 
+              <td style="background-color: #f9fafb; padding: 20px 30px; text-align: center; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;"> 
+                <p style="color: #6b7280; font-size: 14px; margin: 0 0 10px 0;"> 
+                  © ${new Date().getFullYear()} Unity Capital Bank. All rights reserved. 
+                </p> 
+                <p style="color: #9ca3af; font-size: 12px; margin: 0;"> 
+                  This is an automated message, please do not reply to this email. 
+                </p> 
+              </td> 
+            </tr> 
+          </table> 
+        </td> 
+      </tr> 
+    </table> 
+  </body> 
 </html>
         `,
       }),

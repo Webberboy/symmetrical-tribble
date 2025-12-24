@@ -7,7 +7,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { useSettings } from '@/contexts/SettingsContext';
 import { 
   Mail, 
-  Phone, 
   MapPin, 
   Clock, 
   Send,
@@ -89,18 +88,7 @@ const Contact = () => {
       {/* Contact Methods */}
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Phone className="h-8 w-8 text-red-600" />
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-2">Phone Support</h3>
-                <p className="text-white mb-3">Speak with our experts</p>
-                <p className="text-white font-semibold">1-800-BANK-NOW</p>
-              </CardContent>
-            </Card>
-
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
             <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardContent className="p-6 text-center">
                 <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -108,7 +96,7 @@ const Contact = () => {
                 </div>
                 <h3 className="text-xl font-semibold text-white mb-2">Email Us</h3>
                 <p className="text-white mb-3">Get detailed assistance</p>
-                <p className="text-white font-semibold">support@unitycapital.com</p>
+                <p className="text-white font-semibold">support@unitycaplbk.org</p>
               </CardContent>
             </Card>
 
@@ -238,7 +226,7 @@ const Contact = () => {
                   <div>
                     <h3 className="text-xl font-semibold text-slate-900 mb-2">Customer Support</h3>
                     <p className="text-gray-600 mb-1">Available 24/7 for all your banking needs</p>
-                    <p className="text-white font-semibold">1-800-BANK-NOW</p>
+                    <p className="text-slate-900 font-semibold">support@unitycaplbk.org</p>
                   </div>
                 </div>
 
@@ -269,19 +257,19 @@ const Contact = () => {
 
               {/* Business Hours */}
               <div className="mt-12 p-6 bg-gray-50 rounded-2xl">
-                <h3 className="text-xl font-semibold text-white mb-4">Business Hours</h3>
+                <h3 className="text-xl font-semibold text-slate-900 mb-4">Business Hours</h3>
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="text-white">Monday - Friday</span>
-                    <span className="font-semibold text-white">9:00 AM - 6:00 PM</span>
+                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                    <span className="text-slate-700">Monday - Friday</span>
+                    <span className="font-semibold text-slate-900">9:00 AM - 6:00 PM</span>
                   </div>
-                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="text-white">Saturday</span>
-                    <span className="font-semibold text-white">10:00 AM - 4:00 PM</span>
+                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                    <span className="text-slate-700">Saturday</span>
+                    <span className="font-semibold text-slate-900">10:00 AM - 4:00 PM</span>
                   </div>
                   <div className="flex justify-between items-center py-2">
-                    <span className="text-white">Sunday</span>
-                    <span className="font-semibold text-green-400">24/7 Support</span>
+                    <span className="text-slate-700">Sunday</span>
+                    <span className="font-semibold text-green-600">24/7 Support</span>
                   </div>
                 </div>
               </div>

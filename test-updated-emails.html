@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Updated Email Templates</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+        }
+        .test-button:hover {
+            background: #1d4ed8;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+        }
+        .error {
+            background: #fef2f2;
+            border-color: #dc2626;
+            color: #dc2626;
+        }
+        .success {
+            background: #f0fdf4;
+            border-color: #16a34a;
+            color: #16a34a;
+        }
+        .email-preview {
+            margin-top: 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 20px;
+            background: white;
+        }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Test Updated Email Templates</h1>
+        <p>Click the buttons below to test the updated email templates:</p>
+        
+        <button class="test-button" onclick="testWelcomeEmail()">Test Welcome Email</button>
+        <button class="test-button" onclick="testWireTransferEmail()">Test Wire Transfer Email</button>
+        
+        <div id="result" class="result" style="display: none;"></div>
+        <div id="email-preview" class="email-preview" style="display: none;">
+            <h3>Email Preview:</h3>
+            <iframe id="email-frame"></iframe>
+        </div>
+    </div>
+
+    <script>
+        async function testWelcomeEmail() {
+            const resultDiv = document.getElementById('result');
+            const previewDiv = document.getElementById('email-preview');
+            
+            try {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result';
+                resultDiv.innerHTML = 'Testing welcome email...';
+                
+                // Test the welcome email function
+                const response = await fetch('http://localhost:8081/api/test-welcome-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'test@example.com',
+                        firstName: 'John',
+                        accountNumber: '1234567890'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = '<strong>✅ Welcome Email Test Successful!</strong><br>' + 
+                        'Email sent to: test@example.com<br>' +
+                        'Account Number: 1234567890';
+                    
+                    // Show email preview
+                    if (data.html) {
+                        showEmailPreview(data.html);
+                    }
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = '<strong>❌ Welcome Email Test Failed:</strong><br>' + 
+                        (data.error || 'Unknown error');
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = '<strong>❌ Welcome Email Test Error:</strong><br>' + error.message;
+            }
+        }
+        
+        async function testWireTransferEmail() {
+            const resultDiv = document.getElementById('result');
+            const previewDiv = document.getElementById('email-preview');
+            
+            try {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result';
+                resultDiv.innerHTML = 'Testing wire transfer email...';
+                
+                // Test the wire transfer email function
+                const response = await fetch('http://localhost:8081/api/test-wire-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'test@example.com',
+                        code: '123456',
+                        amount: 1000.00,
+                        recipient: 'Jane Doe',
+                        reference: 'WIRE123'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = '<strong>✅ Wire Transfer Email Test Successful!</strong><br>' + 
+                        'Email sent to: test@example.com<br>' +
+                        'Amount: $1,000.00<br>' +
+                        'Recipient: Jane Doe<br>' +
+                        'Authorization Code: 123456';
+                    
+                    // Show email preview
+                    if (data.html) {
+                        showEmailPreview(data.html);
+                    }
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = '<strong>❌ Wire Transfer Email Test Failed:</strong><br>' + 
+                        (data.error || 'Unknown error');
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = '<strong>❌ Wire Transfer Email Test Error:</strong><br>' + error.message;
+            }
+        }
+        
+        function showEmailPreview(html) {
+            const previewDiv = document.getElementById('email-preview');
+            const iframe = document.getElementById('email-frame');
+            
+            previewDiv.style.display = 'block';
+            
+            // Create a blob with the HTML content
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            
+            iframe.src = url;
+        }
+    </script>
+</body>
+</html>

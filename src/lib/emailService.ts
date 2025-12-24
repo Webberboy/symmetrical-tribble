@@ -413,80 +413,31 @@ export const sendWelcomeEmail = async (
   accountNumber: string,
   firstName?: string
 ): Promise<{ success: boolean; error?: string }> => {
+  console.log('📧 [DEBUG] sendWelcomeEmail called with:', { email, accountNumber, firstName });
+  
   try {
     console.log('=== sendWelcomeEmail called ===');
     console.log('Email:', email);
     console.log('Account number:', accountNumber);
     console.log('First name:', firstName);
     
-    // Get the Supabase URL from environment
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const functionUrl = `${supabaseUrl}/functions/v1/newsend-welcome-email`;
-    
-    console.log('Function URL:', functionUrl);
-    
-    // Use service role key for server-side operations (more secure than anon key)
-    const serviceRoleKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
-    
-    if (!serviceRoleKey) {
-      // Fallback to anon key if service role key is not available
-      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      if (!anonKey) {
-        console.log('No API key configured');
-        return { success: false, error: 'No API key configured' };
-      }
-      
-      console.log('Using anon key for authentication');
-      
-      // Call the edge function with anon key (less secure but works)
-      const response = await fetch(functionUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${anonKey}`,
-        },
-        body: JSON.stringify({
-          email,
-          accountNumber,
-          firstName
-        })
-      });
-
-      console.log('Response status:', response.status);
-      const result = await response.json();
-      console.log('Response result:', result);
-
-      if (!response.ok) {
-        return { success: false, error: result.error || 'Failed to send welcome email' };
-      }
-
-      return { success: true };
-    }
-
-    console.log('Using service role key for authentication');
-
-    // Call the edge function with service role key (more secure)
-    const response = await fetch(functionUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${serviceRoleKey}`,
-      },
-      body: JSON.stringify({
+    console.log('📧 [DEBUG] Calling Supabase edge function: newsend-welcome-email');
+    const { data, error } = await supabase.functions.invoke('newsend-welcome-email', {
+      body: {
         email,
-        accountNumber,
-        firstName
-      })
+        firstName,
+        accountNumber
+      }
     });
 
-    console.log('Response status:', response.status);
-    const result = await response.json();
-    console.log('Response result:', result);
+    console.log('📧 [DEBUG] Edge function response:', { data, error });
 
-    if (!response.ok) {
-      return { success: false, error: result.error || 'Failed to send welcome email' };
+    if (error) {
+      console.log('❌ [DEBUG] Edge function error:', error);
+      return { success: false, error: error.message };
     }
 
+    console.log('✅ [DEBUG] Welcome email sent successfully');
     return { success: true };
   } catch (error: any) {
     console.error('Error in sendWelcomeEmail:', error);

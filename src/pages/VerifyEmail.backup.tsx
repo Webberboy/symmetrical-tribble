@@ -16,10 +16,12 @@ const VerifyEmail = () => {
   const [email, setEmail] = useState<string>("");
 
   useEffect(() => {
+    console.log('📧 [DEBUG] Email verification process started');
     
     // Get email from URL params (passed from signup page)
     const emailParam = searchParams.get("email");
     if (emailParam) {
+      console.log('📧 [DEBUG] Email from URL params:', emailParam);
       setEmail(emailParam);
     }
 
@@ -29,8 +31,10 @@ const VerifyEmail = () => {
     const errorCode = hashParams.get("error_code");
     const errorDescription = hashParams.get("error_description");
 
+    console.log('📧 [DEBUG] Hash params - error:', errorParam, 'error_code:', errorCode, 'error_description:', errorDescription);
 
     if (errorParam === "access_denied" && errorCode === "otp_expired") {
+      console.log('❌ [DEBUG] OTP expired detected');
       setError("Your verification link has expired. Please request a new one.");
       return;
     }
@@ -40,47 +44,56 @@ const VerifyEmail = () => {
       const accessToken = hashParams.get("access_token");
       const type = hashParams.get("type");
 
+      console.log('📧 [DEBUG] Verification link detected - access_token:', accessToken, 'type:', type);
 
       if (accessToken && type === "signup") {
+        console.log('📧 [DEBUG] Starting email verification process');
         setVerifying(true);
         
         try {
           // Set the session with the tokens from the URL
+          console.log('📧 [DEBUG] Setting session with access_token and refresh_token');
           const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: hashParams.get("refresh_token") || "",
           });
 
           if (sessionError) {
+            console.error('❌ [DEBUG] Session error:', sessionError);
             throw sessionError;
           }
 
           if (!sessionData.user) {
+            console.error('❌ [DEBUG] No user found after verification');
             throw new Error("No user found after verification");
           }
 
-          
+          console.log('✅ [DEBUG] Email verified successfully, user:', sessionData.user);
           setVerified(true);
 
           // Now create the user profile
           // Get stored signup data from localStorage
           const storageKey = `signup_data_${sessionData.user.id}`;
+          console.log('📧 [DEBUG] Looking for signup data with key:', storageKey);
           
           const storedData = localStorage.getItem(storageKey);
           
           if (storedData) {
+            console.log('📧 [DEBUG] Found stored signup data');
             const signupData = JSON.parse(storedData);
             
             // Create profile
+            console.log('📧 [DEBUG] Creating user profile with data:', signupData);
             const { profile, role, accountNumber } = await completeUserSignup(
               sessionData.user.id,
               signupData
             );
 
+            console.log('✅ [DEBUG] Profile created successfully - profile:', profile, 'role:', role, 'accountNumber:', accountNumber);
 
             // Send welcome email
             try {
-              
+              console.log('📧 [DEBUG] Sending welcome email to:', signupData.email);
               const { sendWelcomeEmail } = await import("@/lib/emailService");
               const result = await sendWelcomeEmail(
                 signupData.email,
@@ -89,26 +102,33 @@ const VerifyEmail = () => {
               );
               
               if (result.success) {
+                console.log('✅ [DEBUG] Welcome email sent successfully');
               } else {
+                console.error('❌ [DEBUG] Welcome email failed:', result.error);
               }
             } catch (emailError: any) {
+              console.error('❌ [DEBUG] Welcome email error:', emailError);
               // Don't block signup if email fails
             }
 
             // Clean up localStorage
+            console.log('📧 [DEBUG] Cleaning up localStorage');
             localStorage.removeItem(`signup_data_${sessionData.user.id}`);
 
             // Redirect to dashboard
+            console.log('📧 [DEBUG] Redirecting to dashboard in 2 seconds');
             setTimeout(() => {
               navigate("/dashboard");
             }, 2000);
           } else {
+            console.log('📧 [DEBUG] No stored signup data found, redirecting to profile');
             // No stored data - just redirect to complete profile manually
             setTimeout(() => {
               navigate("/profile");
             }, 2000);
           }
         } catch (err: any) {
+          console.error('❌ [DEBUG] Verification error:', err);
           
           // Check if it's a network error
           if (err.message && (err.message.includes('fetch') || err.message.includes('network') || err.message.includes('SSL'))) {
@@ -120,6 +140,7 @@ const VerifyEmail = () => {
           setVerifying(false);
         }
       } else {
+        console.log('📧 [DEBUG] No verification tokens found in URL');
       }
     };
 

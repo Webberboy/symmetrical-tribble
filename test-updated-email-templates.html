@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Updated Email Templates</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: #f9fafb;
+        }
+        .test-button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 16px;
+        }
+        .test-button:hover {
+            background: #1d4ed8;
+        }
+        .test-button.wire {
+            background: #dc2626;
+        }
+        .test-button.wire:hover {
+            background: #b91c1c;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+        }
+        .error {
+            background: #fef2f2;
+            border-color: #dc2626;
+            color: #dc2626;
+        }
+        .success {
+            background: #f0fdf4;
+            border-color: #16a34a;
+            color: #16a34a;
+        }
+        .email-preview {
+            margin-top: 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 20px;
+            background: white;
+        }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+        }
+        .input-group {
+            margin: 15px 0;
+        }
+        .input-group label {
+            display: inline-block;
+            width: 120px;
+            font-weight: 600;
+        }
+        .input-group input {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            width: 250px;
+        }
+        .template-info {
+            background: #eff6ff;
+            border: 1px solid #2563eb;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        .template-info h4 {
+            margin: 0 0 10px 0;
+            color: #1e40af;
+        }
+        .template-info ul {
+            margin: 5px 0;
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Test Updated Email Templates</h1>
+        <p>Test the new email templates with updated designs:</p>
+        
+        <!-- Welcome Email Section -->
+        <div class="test-section">
+            <h2>🏦 Welcome Email Template</h2>
+            <div class="template-info">
+                <h4>New Template Features:</h4>
+                <ul>
+                    <li>Dark gray header with white text</li>
+                    <li>Professional table-based layout</li>
+                    <li>Styled account number box with blue border</li>
+                    <li>Blue info boxes for features and security</li>
+                    <li>Updated footer with proper branding</li>
+                </ul>
+            </div>
+            
+            <div class="input-group">
+                <label>Email:</label>
+                <input type="email" id="welcomeEmail" value="test@example.com" />
+            </div>
+            <div class="input-group">
+                <label>First Name:</label>
+                <input type="text" id="welcomeFirstName" value="John" />
+            </div>
+            <div class="input-group">
+                <label>Account Number:</label>
+                <input type="text" id="welcomeAccountNumber" value="123456789012" />
+            </div>
+            
+            <button class="test-button" onclick="testWelcomeEmail()">Test Welcome Email</button>
+            <button class="test-button" onclick="previewWelcomeEmail()">Preview Welcome Email</button>
+            
+            <div id="welcomeResult" class="result" style="display: none;"></div>
+            <div id="welcomePreview" class="email-preview" style="display: none;">
+                <h3>Email Preview:</h3>
+                <iframe id="welcomeFrame"></iframe>
+            </div>
+        </div>
+        
+        <!-- Wire Transfer Email Section -->
+        <div class="test-section">
+            <h2>💸 Wire Transfer Email Template</h2>
+            <div class="template-info">
+                <h4>New Template Features:</h4>
+                <ul>
+                    <li>Red header for security emphasis</li>
+                    <li>Professional table-based layout</li>
+                    <li>Styled authorization code box with red border</li>
+                    <li>Blue info box for transfer details</li>
+                    <li>Red warning box for security notices</li>
+                    <li>Prominent expiration notice</li>
+                </ul>
+            </div>
+            
+            <div class="input-group">
+                <label>Email:</label>
+                <input type="email" id="wireEmail" value="test@example.com" />
+            </div>
+            <div class="input-group">
+                <label>Authorization Code:</label>
+                <input type="text" id="wireCode" value="123456" />
+            </div>
+            <div class="input-group">
+                <label>Amount:</label>
+                <input type="number" id="wireAmount" value="1000.00" step="0.01" />
+            </div>
+            <div class="input-group">
+                <label>Recipient:</label>
+                <input type="text" id="wireRecipient" value="Jane Doe" />
+            </div>
+            <div class="input-group">
+                <label>Reference:</label>
+                <input type="text" id="wireReference" value="WIRE123" />
+            </div>
+            
+            <button class="test-button wire" onclick="testWireTransferEmail()">Test Wire Transfer Email</button>
+            <button class="test-button wire" onclick="previewWireTransferEmail()">Preview Wire Transfer Email</button>
+            
+            <div id="wireResult" class="result" style="display: none;"></div>
+            <div id="wirePreview" class="email-preview" style="display: none;">
+                <h3>Email Preview:</h3>
+                <iframe id="wireFrame"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Supabase configuration
+        const supabaseUrl = 'https://jovrfejbutfrzvclchuf.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvdnJmZWpidXRmcnp2Y2xjaHVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwNjgwOTksImV4cCI6MjA4MTY0NDA5OX0.torsxZlwh29SHD6iBp6dn-n3y_ZLhWe9Pqk4iFM_SX8';
+        
+        async function testWelcomeEmail() {
+            const resultDiv = document.getElementById('welcomeResult');
+            const email = document.getElementById('welcomeEmail').value;
+            const firstName = document.getElementById('welcomeFirstName').value;
+            const accountNumber = document.getElementById('welcomeAccountNumber').value;
+            
+            try {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result';
+                resultDiv.innerHTML = 'Testing welcome email function...';
+                
+                // Create test payload
+                const testPayload = {
+                    email: email,
+                    firstName: firstName,
+                    accountNumber: accountNumber
+                };
+                
+                console.log('Testing welcome email with payload:', testPayload);
+                
+                // First, create a test user session
+                const authRes = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': supabaseAnonKey,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'test@unitycaplbk.org',
+                        password: 'TestPassword123!'
+                    })
+                });
+
+                if (!authRes.ok) {
+                    throw new Error('Auth failed: ' + authRes.statusText);
+                }
+
+                const authData = await authRes.json();
+                const accessToken = authData.access_token;
+
+                // Call the edge function with authenticated token
+                const response = await fetch(`${supabaseUrl}/functions/v1/newsend-welcome-email`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`,
+                        'apikey': supabaseAnonKey
+                    },
+                    body: JSON.stringify(testPayload)
+                });
+                
+                const data = await response.json();
+                console.log('Welcome email response:', data);
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `<strong>✅ Welcome Email Test Successful!</strong><br>
+                        Status: ${data.message || 'Email processed'}<br>
+                        Account Number: ${accountNumber}<br>
+                        Email: ${email}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<strong>❌ Welcome Email Test Failed:</strong><br>
+                        Error: ${data.error || 'Unknown error'}<br>
+                        Details: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>❌ Welcome Email Test Error:</strong><br>${error.message}`;
+                console.error('Welcome email test error:', error);
+            }
+        }
+        
+        async function testWireTransferEmail() {
+            const resultDiv = document.getElementById('wireResult');
+            const email = document.getElementById('wireEmail').value;
+            const code = document.getElementById('wireCode').value;
+            const amount = parseFloat(document.getElementById('wireAmount').value);
+            const recipient = document.getElementById('wireRecipient').value;
+            const reference = document.getElementById('wireReference').value;
+            
+            try {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result';
+                resultDiv.innerHTML = 'Testing wire transfer email function...';
+                
+                // Create test payload
+                const testPayload = {
+                    email: email,
+                    code: code,
+                    amount: amount,
+                    recipient: recipient,
+                    reference: reference
+                };
+                
+                console.log('Testing wire transfer email with payload:', testPayload);
+                
+                // First, create a test user session
+                const authRes = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': supabaseAnonKey,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'test@unitycaplbk.org',
+                        password: 'TestPassword123!'
+                    })
+                });
+
+                if (!authRes.ok) {
+                    throw new Error('Auth failed: ' + authRes.statusText);
+                }
+
+                const authData = await authRes.json();
+                const accessToken = authData.access_token;
+                
+                // Call the edge function with authenticated token
+                const response = await fetch(`${supabaseUrl}/functions/v1/send-wire-auth-code`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`,
+                        'apikey': supabaseAnonKey
+                    },
+                    body: JSON.stringify(testPayload)
+                });
+                
+                const data = await response.json();
+                console.log('Wire transfer email response:', data);
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `<strong>✅ Wire Transfer Email Test Successful!</strong><br>
+                        Status: ${data.message || 'Email processed'}<br>
+                        Amount: $${amount.toFixed(2)}<br>
+                        Recipient: ${recipient}<br>
+                        Authorization Code: ${code}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<strong>❌ Wire Transfer Email Test Failed:</strong><br>
+                        Error: ${data.error || 'Unknown error'}<br>
+                        Details: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>❌ Wire Transfer Email Test Error:</strong><br>${error.message}`;
+                console.error('Wire transfer email test error:', error);
+            }
+        }
+        
+        function previewWelcomeEmail() {
+            const email = document.getElementById('welcomeEmail').value;
+            const firstName = document.getElementById('welcomeFirstName').value;
+            const accountNumber = document.getElementById('welcomeAccountNumber').value;
+            
+            const greeting = firstName ? `Dear ${firstName}` : 'Welcome';
+            
+            const html = `
+<!DOCTYPE html> 
+<html> 
+  <head> 
+    <meta charset="utf-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>Welcome to Unity Capital Bank</title> 
+  </head> 
+  <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f3f4f6;"> 
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 0;"> 
+      <tr> 
+        <td align="center"> 
+          <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"> 
+            <tr> 
+              <td style="background-color: #1f2937; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;"> 
+                <h1 style="color: #ffffff; margin: 0; font-size: 28px;">Unity Capital Bank</h1> 
+                <p style="color: #e5e7eb; margin: 10px 0 0 0; font-size: 14px;">Enterprise Banking</p> 
+              </td> 
+            </tr> 
+            <tr> 
+              <td style="padding: 40px 30px;"> 
+                <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 24px;">${greeting}!</h2> 
+                <p style="color: #4b5563; line-height: 1.6; margin: 0 0 20px 0;"> 
+                  Thank you for choosing Unity Capital Bank! Your account has been successfully created and you're now ready to experience modern banking at its finest. 
+                </p> 
+                <p style="color: #4b5563; line-height: 1.6; margin: 0 0 20px 0; font-weight: 600;"> 
+                  Your account number is: 
+                </p> 
+                <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;"> 
+                  <tr> 
+                    <td align="center"> 
+                      <div style="display: inline-block; background-color: #1f2937; border: 2px solid #2563eb; border-radius: 8px; padding: 20px 40px;"> 
+                        <span style="font-size: 36px; font-weight: bold; color: #ffffff; letter-spacing: 8px; font-family: 'Courier New', monospace;"> 
+                          ${accountNumber} 
+                        </span> 
+                      </div> 
+                     </td> 
+                  </tr> 
+                </table> 
+                <div style="background-color: #eff6ff; border-left: 4px solid #2563eb; padding: 16px; margin: 20px 0; border-radius: 4px;"> 
+                  <p style="color: #1e40af; font-size: 14px; line-height: 1.6; margin: 0;"> 
+                    <strong>💡 Welcome Features:</strong> Secure online banking, competitive interest rates, free domestic wire transfers, 24/7 customer support, and advanced security features. 
+                  </p> 
+                </div> 
+                <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 20px 0; border-radius: 4px;"> 
+                  <p style="color: #92400e; font-size: 14px; line-height: 1.6; margin: 0;"> 
+                    <strong>🔒 Security Reminder:</strong> Keep your account number confidential, never share login credentials, enable two-factor authentication, and monitor your account regularly. 
+                  </p> 
+                </div> 
+                <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 20px 0 0 0;"> 
+                  If you didn't create an account with Unity Capital Bank, please disregard this email. 
+                </p> 
+              </td> 
+            </tr> 
+            <tr> 
+              <td style="background-color: #f9fafb; padding: 20px 30px; text-align: center; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;"> 
+                <p style="color: #6b7280; font-size: 14px; margin: 0 0 10px 0;"> 
+                  © ${new Date().getFullYear()} Unity Capital Bank. All rights reserved. 
+                </p> 
+                <p style="color: #9ca3af; font-size: 12px; margin: 0;"> 
+                  This is an automated message, please do not reply to this email. 
+                </p> 
+              </td> 
+            </tr> 
+          </table> 
+        </td> 
+      </tr> 
+    </table> 
+  </body> 
+</html>
+            `;
+            
+            showPreview('welcomePreview', 'welcomeFrame', html);
+        }
+        
+        function previewWireTransferEmail() {
+            const email = document.getElementById('wireEmail').value;
+            const code = document.getElementById('wireCode').value;
+            const amount = parseFloat(document.getElementById('wireAmount').value);
+            const recipient = document.getElementById('wireRecipient').value;
+            const reference = document.getElementById('wireReference').value;
+            
+            const html = `
+<!DOCTYPE html> 
+<html> 
+  <head> 
+    <meta charset="utf-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>Wire Transfer Authorization</title> 
+  </head> 
+  <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f3f4f6;"> 
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 0;"> 
+      <tr> 
+        <td align="center"> 
+          <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"> 
+            <tr> 
+              <td style="background-color: #dc2626; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;"> 
+                <h1 style="color: #ffffff; margin: 0; font-size: 28px;">Unity Capital Bank</h1> 
+                <p style="color: #fee2e2; margin: 10px 0 0 0; font-size: 14px;">Wire Transfer Authorization</p> 
+              </td> 
+            </tr> 
+            <tr> 
+              <td style="padding: 40px 30px;"> 
+                <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 24px;">Wire Transfer Authorization Code</h2> 
+                <p style="color: #4b5563; line-height: 1.6; margin: 0 0 20px 0;"> 
+                  You have initiated a wire transfer. Please use the following authorization code to complete your transaction. 
+                </p> 
+                <p style="color: #4b5563; line-height: 1.6; margin: 0 0 20px 0; font-weight: 600;"> 
+                  Your authorization code is: 
+                </p> 
+                <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;"> 
+                  <tr> 
+                    <td align="center"> 
+                      <div style="display: inline-block; background-color: #dc2626; border: 2px solid #b91c1c; border-radius: 8px; padding: 20px 40px;"> 
+                        <span style="font-size: 36px; font-weight: bold; color: #ffffff; letter-spacing: 8px; font-family: 'Courier New', monospace;"> 
+                          ${code} 
+                        </span> 
+                      </div> 
+                     </td> 
+                  </tr> 
+                </table> 
+                <div style="background-color: #f8fafc; border-left: 4px solid #2563eb; padding: 16px; margin: 20px 0; border-radius: 4px;"> 
+                  <p style="color: #1e40af; font-size: 14px; line-height: 1.6; margin: 0;"> 
+                    <strong>💰 Transfer Details:</strong> Amount: $${amount.toFixed(2)}, Recipient: ${recipient}, Date: ${new Date().toLocaleDateString()} 
+                  </p> 
+                </div> 
+                <div style="background-color: #fef2f2; border-left: 4px solid #dc2626; padding: 16px; margin: 20px 0; border-radius: 4px;"> 
+                  <p style="color: #b91c1c; font-size: 14px; line-height: 1.6; margin: 0;"> 
+                    <strong>⚠️ Security Warning:</strong> This code expires in 10 minutes. Never share this code with anyone. Unity Capital Bank will never ask for this code over the phone. If you didn't initiate this transfer, contact us immediately. 
+                  </p> 
+                </div> 
+                <p style="color: #dc2626; font-size: 14px; line-height: 1.6; margin: 20px 0; font-weight: 600; text-align: center;"> 
+                  ⏰ This code expires in 10 minutes 
+                </p> 
+                <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 20px 0 0 0;"> 
+                  Please enter this code in your banking application to authorize the wire transfer. 
+                </p> 
+              </td> 
+            </tr> 
+            <tr> 
+              <td style="background-color: #f9fafb; padding: 20px 30px; text-align: center; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;"> 
+                <p style="color: #6b7280; font-size: 14px; margin: 0 0 10px 0;"> 
+                  © ${new Date().getFullYear()} Unity Capital Bank. All rights reserved. 
+                </p> 
+                <p style="color: #9ca3af; font-size: 12px; margin: 0;"> 
+                  This is an automated message, please do not reply to this email. 
+                </p> 
+              </td> 
+            </tr> 
+          </table> 
+        </td> 
+      </tr> 
+    </table> 
+  </body> 
+</html>
+            `;
+            
+            showPreview('wirePreview', 'wireFrame', html);
+        }
+        
+        function showPreview(previewId, frameId, html) {
+            const previewDiv = document.getElementById(previewId);
+            const iframe = document.getElementById(frameId);
+            
+            previewDiv.style.display = 'block';
+            
+            // Create a blob with the HTML content
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            
+            iframe.src = url;
+        }
+    </script>
+</body>
+</html>

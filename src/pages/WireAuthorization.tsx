@@ -122,12 +122,13 @@ const WireAuthorization: React.FC = () => {
   };
 
   const handleSendPin = async () => {
+    console.log('🔄 [DEBUG] Wire transfer PIN request initiated');
     setIsProcessing(true);
     
     try {
       // Validate transfer data exists
       if (!transferData) {
-        console.error('Transfer data is missing');
+        console.error('❌ [DEBUG] Transfer data is missing');
         toast.error('Transfer data is missing. Please start over.');
         setIsProcessing(false);
         return;
@@ -135,21 +136,21 @@ const WireAuthorization: React.FC = () => {
       
       // Validate required fields
       if (!userEmail) {
-        console.error('User email is missing');
+        console.error('❌ [DEBUG] User email is missing');
         toast.error('User email is missing. Please log in again.');
         setIsProcessing(false);
         return;
       }
       
       if (!transferData.totalAmount || transferData.totalAmount <= 0) {
-        console.error('Invalid transfer amount:', transferData.totalAmount);
+        console.error('❌ [DEBUG] Invalid transfer amount:', transferData.totalAmount);
         toast.error('Invalid transfer amount. Please check your transfer details.');
         setIsProcessing(false);
         return;
       }
       
       if (!transferData.recipientData?.recipientName) {
-        console.error('Recipient name is missing');
+        console.error('❌ [DEBUG] Recipient name is missing');
         toast.error('Recipient information is incomplete. Please check your transfer details.');
         setIsProcessing(false);
         return;
@@ -159,22 +160,22 @@ const WireAuthorization: React.FC = () => {
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       setGeneratedPin(code);
       
-      // Console log for debugging
-      console.log('Send Transfer Authorization Code clicked:', {
+      console.log('📧 [DEBUG] Wire transfer PIN generation and email request:', {
         userEmail,
         amount: transferData.totalAmount,
         recipient: transferData.recipientData.recipientName,
         generatedCode: code,
         timestamp: new Date().toISOString(),
-        requestBody: JSON.stringify({
+        requestPayload: {
           email: userEmail,
           code: code,
           amount: transferData.totalAmount,
           recipient: transferData.recipientData.recipientName
-        })
+        }
       });
       
       // Send authorization code via new Supabase Edge Function
+      console.log('📧 [DEBUG] Calling Supabase edge function: send-wire-auth-code');
       const { data, error } = await supabase.functions.invoke('send-wire-auth-code', {
         body: {
           email: userEmail,
@@ -184,26 +185,23 @@ const WireAuthorization: React.FC = () => {
         }
       })
       
-      console.log('Edge function response:', { data, error });
+      console.log('📧 [DEBUG] Wire transfer PIN email response:', { data, error });
 
       if (error) {
-        console.error('Failed to send authorization code:', error);
+        console.error('❌ [DEBUG] Failed to send authorization code:', error);
         toast.error('Failed to send authorization code. Please try again.');
         setIsProcessing(false);
         return;
       }
 
-      console.log('PIN SENT SUCCESSFULLY - Updating state:');
-      console.log('Setting pinSent to true');
-      console.log('Setting countdown to 60');
-      console.log('Setting canResend to false');
+      console.log('✅ [DEBUG] Wire transfer PIN sent successfully');
       
       setPinSent(true);
       setCountdown(60);
       setCanResend(false);
       toast.success(`Authorization code sent to ${userEmail}`);
     } catch (error) {
-      console.error('Authorization code error:', error);
+      console.error('❌ [DEBUG] Authorization code error:', error);
       toast.error('Failed to send authorization code');
     } finally {
       setIsProcessing(false);

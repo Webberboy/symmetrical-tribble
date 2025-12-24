@@ -12,7 +12,7 @@ import VerifyEmail from "./pages/VerifyEmail";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import ResetPasswordVerify from "./pages/ResetPasswordVerify";
-import OTPVerification from "./pages/OTPVerification";
+
 import AdminLogin from "./pages/AdminLogin";
 import FlexibleAdminLogin from "./pages/FlexibleAdminLogin";
 import Dashboard from "./pages/Dashboard";
@@ -93,7 +93,7 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/reset-password-verify" element={<ResetPasswordVerify />} />
-            <Route path="/otp-verification" element={<OTPVerification />} />
+
             <Route path="/xk9p2vnz7q" element={<FlexibleAdminLogin />} />
             <Route path="/home" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />

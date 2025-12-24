@@ -5,7 +5,7 @@ import { ShieldCheckIcon, CheckCircleIcon, InformationCircleIcon } from '@heroic
 const PromotionalBanner: React.FC = () => {
   return (
     <div className="w-full px-4 py-6">
-      <Card className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 text-white shadow-xl">
+      <Card className="relative overflow-hidden bg-gradient-to-r from-red-600 via-red-700 to-red-800 text-white shadow-xl">
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="relative p-6 md:p-8">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">

@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { EyeIcon as Eye, EyeSlashIcon as EyeOff, ClipboardDocumentIcon as Copy } from '@heroicons/react/24/outline';
+import { EyeIcon as Eye, EyeSlashIcon as EyeOff, ClipboardDocumentIcon as Copy, ArrowRightOnRectangleIcon as Transfer, DocumentTextIcon as Transaction, CreditCardIcon } from '@heroicons/react/24/outline'
+import { Bitcoin, Receipt } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { toast as sonnerToast } from 'sonner';
@@ -301,47 +302,69 @@ const AccountBalances: React.FC = () => {
       {/* Divider */}
       <div className="border-t border-gray-200 my-4"></div>
 
-      {/* Account Number */}
+      {/* Account Number Box */}
       <div className="mb-4">
-        <p className="text-xs text-gray-600 font-medium uppercase tracking-wider mb-1">Account Number</p>
-        <div className="flex items-center gap-2">
-          <p className="text-sm text-gray-900 font-mono font-semibold">
-            {showBalance ? account.accountNumber : '••••••••••••'}
-          </p>
-          {showBalance && (
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                navigator.clipboard.writeText(account.accountNumber);
-                sonnerToast.success('Account number copied!');
-              }}
-              onMouseDown={(e) => e.stopPropagation()}
-              onTouchStart={(e) => e.stopPropagation()}
-              className="text-gray-500 hover:text-primary transition-colors p-1 rounded hover:bg-gray-100"
-              title="Copy account number"
-            >
-              <Copy className="h-4 w-4" />
-            </button>
-          )}
+        <p className="text-xs text-gray-600 font-medium uppercase tracking-wider mb-2">Account Number</p>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-900 font-mono font-semibold">
+                {showBalance ? account.accountNumber : '••••••••••••'}
+              </p>
+            </div>
+            {showBalance && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  navigator.clipboard.writeText(account.accountNumber);
+                  sonnerToast.success('Account number copied!');
+                }}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                className="text-gray-500 hover:text-primary transition-colors p-1 rounded hover:bg-gray-100"
+                title="Copy account number"
+              >
+                <Copy className="h-4 w-4" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Transaction Information */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-green-50 border border-green-100 rounded-lg p-3">
-          <p className="text-xs text-green-700 font-medium uppercase tracking-wider mb-1">Last Credit</p>
-          <p className="text-lg font-bold text-green-900 tabular-nums">
-            {showBalance ? formatCurrency(account.lastCredit) : '••••••'}
-          </p>
-        </div>
+      {/* Action Buttons */}
+      <div className="grid grid-cols-2 gap-3 mt-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            navigate('/transactions');
+          }}
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          className="bg-white text-gray-700 border-gray-200 hover:bg-red-600 hover:text-white hover:border-red-600 transition-colors"
+        >
+          <Transaction className="h-4 w-4 mr-2" />
+          Transactions
+        </Button>
         
-        <div className="bg-red-50 border border-red-100 rounded-lg p-3">
-          <p className="text-xs text-red-700 font-medium uppercase tracking-wider mb-1">Last Debit</p>
-          <p className="text-lg font-bold text-red-900 tabular-nums">
-            {showBalance ? formatCurrency(account.lastDebit) : '••••••'}
-          </p>
-        </div>
+        <Button
+          variant="default"
+          size="sm"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            navigate('/internal-transfer');
+          }}
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          className="bg-primary hover:bg-primary/90 transition-colors"
+        >
+          <Transfer className="h-4 w-4 mr-2" />
+          Transfer
+        </Button>
       </div>
 
     </Card>
@@ -369,7 +392,7 @@ const AccountBalances: React.FC = () => {
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full space-y-6">
       {/* Enhanced Desktop View with full-width equal cards */}
       <div className="hidden md:block">
         <div 
@@ -433,6 +456,52 @@ const AccountBalances: React.FC = () => {
               disabled={isTransitioning}
             />
           ))}
+        </div>
+      </div>
+
+      {/* Quick Actions Section */}
+      <div className="mt-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {/* Transfer */}
+          <Button
+            variant="outline"
+            onClick={() => navigate('/internal-transfer')}
+            className="flex flex-col items-center justify-center p-4 h-24 bg-white border-gray-200 hover:bg-red-600 hover:text-white hover:border-red-600 transition-colors group"
+          >
+            <Transfer className="h-6 w-6 mb-2 text-gray-700 group-hover:text-white" />
+            <span className="text-sm font-medium">Transfer</span>
+          </Button>
+
+          {/* My Card */}
+          <Button
+            variant="outline"
+            onClick={() => navigate('/cards')}
+            className="flex flex-col items-center justify-center p-4 h-24 bg-white border-gray-200 hover:bg-red-600 hover:text-white hover:border-red-600 transition-colors group"
+          >
+            <CreditCardIcon className="h-6 w-6 mb-2 text-gray-700 group-hover:text-white" />
+            <span className="text-sm font-medium">My Card</span>
+          </Button>
+
+          {/* Bills */}
+          <Button
+            variant="outline"
+            onClick={() => navigate('/bills')}
+            className="flex flex-col items-center justify-center p-4 h-24 bg-white border-gray-200 hover:bg-red-600 hover:text-white hover:border-red-600 transition-colors group"
+          >
+            <Receipt className="h-6 w-6 mb-2 text-gray-700 group-hover:text-white" />
+            <span className="text-sm font-medium">Bills</span>
+          </Button>
+
+          {/* Crypto */}
+            <Button
+              variant="outline"
+              onClick={() => navigate('/crypto')}
+              className="flex flex-col items-center justify-center p-4 h-24 bg-white border-gray-200 hover:bg-red-600 hover:text-white hover:border-red-600 transition-colors group"
+            >
+              <Bitcoin className="h-6 w-6 mb-2 text-gray-700 group-hover:text-white" />
+              <span className="text-sm font-medium">Crypto</span>
+            </Button>
         </div>
       </div>
     </div>

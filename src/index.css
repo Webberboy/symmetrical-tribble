@@ -24,10 +24,10 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 39% 11%;
 
-    /* Primary - Professional Blue (#0052CC) */
-    --primary: 216 100% 40%;
+    /* Primary - Banking Red (#DC2626) */
+    --primary: 0 72% 51%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 216 100% 35%;
+    --primary-hover: 0 72% 46%;
 
     /* Secondary - Action Blue (#2563EB) */
     --secondary: 221 83% 53%;
@@ -80,12 +80,12 @@
     /* Sidebar */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 220 39% 11%;
-    --sidebar-primary: 216 100% 40%;
+    --sidebar-primary: 0 72% 51%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 14% 96%;
     --sidebar-accent-foreground: 220 39% 11%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 216 100% 40%;
+    --sidebar-ring: 0 72% 51%;
   }
 
   .dark {
@@ -98,9 +98,9 @@
     --popover: 220 39% 13%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 216 100% 50%;
+    --primary: 0 72% 51%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 216 100% 45%;
+    --primary-hover: 0 72% 46%;
 
     --secondary: 221 83% 58%;
     --secondary-foreground: 0 0% 100%;
@@ -128,12 +128,12 @@
 
     --sidebar-background: 220 39% 11%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 216 100% 50%;
+    --sidebar-primary: 0 72% 51%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 30% 18%;
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 220 30% 25%;
-    --sidebar-ring: 216 100% 50%;
+    --sidebar-ring: 0 72% 51%;
   }
 }
 

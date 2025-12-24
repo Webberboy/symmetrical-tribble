@@ -35,38 +35,53 @@ const SignIn = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    console.log('🚀 SignIn: Starting login process for account:', accountNumber.toUpperCase());
 
     try {
-      // Simple approach: Get email from account number and login directly
+      // Step 1: Validate credentials without actually logging in
+      console.log('🔍 SignIn: Step 1 - Getting email by account number');
       const { data: userEmail, error: emailError } = await supabase
         .rpc('get_email_by_account', { account_num: accountNumber.toUpperCase() }) as { data: string | null, error: any };
 
+      console.log('📧 SignIn: Email lookup result:', { userEmail, emailError });
+
       if (emailError || !userEmail) {
+        console.log('❌ SignIn: Invalid account number or password');
         toast.error("Invalid account number or password");
         setLoading(false);
         return;
       }
 
-      // Direct login with email and password
+      // Step 2: Validate password by attempting login (then immediately sign out)
+      console.log('🔐 SignIn: Step 2 - Validating password for email:', userEmail);
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: userEmail,
         password: password,
       });
 
+      console.log('✅ SignIn: Password validation result:', { authData: !!authData?.user, authError });
+
       if (authError || !authData?.user) {
+        console.log('❌ SignIn: Password validation failed');
         toast.error("Invalid account number or password");
         setLoading(false);
         return;
       }
 
-      // Get basic user info in one call
+      // Step 3: Get user profile to check if banned
+      console.log('👤 SignIn: Step 3 - Fetching user profile for user ID:', authData.user.id);
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id, email, first_name, last_name, full_name, account_number, balance, is_banned, ban_reason')
         .eq('id', authData.user.id)
         .single();
 
+      console.log('📋 SignIn: Profile fetch result:', { profile, profileError });
+
       if (profileError || !profile) {
+        console.log('❌ SignIn: Profile fetch failed');
+        // Don't sign out here as user might not be properly signed in yet
+        console.error('Profile fetch error:', profileError);
         toast.error("Login failed. Please try again.");
         setLoading(false);
         return;
@@ -74,27 +89,80 @@ const SignIn = () => {
 
       // Check if banned
       if (profile.is_banned) {
-        await supabase.auth.signOut(); // Sign out banned user
+        console.log('🚫 SignIn: User account is banned');
+        // Try to sign out banned user, but don't fail if it doesn't work
+        try {
+          await supabase.auth.signOut();
+          console.log('✅ SignIn: Banned user signed out');
+        } catch (signOutError) {
+          console.warn('Sign out warning for banned user:', signOutError);
+        }
         toast.error("Account suspended. Please contact support.");
         setLoading(false);
         return;
       }
 
-      // Save user data to localStorage
-      const userData = {
-        id: profile.id,
-        email: profile.email,
-        firstName: profile.first_name || profile.full_name?.split(' ')[0] || 'User',
-        lastName: profile.last_name || profile.full_name?.split(' ').slice(1).join(' ') || '',
-        accountNumber: profile.account_number,
-        balance: profile.balance || 0
-      };
-      localStorage.setItem("user", JSON.stringify(userData));
+      console.log('✅ SignIn: User profile validated, not banned');
 
+      // Direct login - no OTP verification needed
+      console.log('🔑 SignIn: Attempting direct login with credentials');
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: userEmail,
+        password: password,
+      });
+
+      console.log('✅ SignIn: Login result:', { loginSuccess: !!data?.user, error });
+
+      if (error || !data?.user) {
+        console.log('❌ SignIn: Login failed');
+        toast.error("Invalid credentials. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      // Get user profile and save to localStorage
+      console.log('👤 SignIn: Fetching user profile');
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
+
+      console.log('📋 SignIn: Profile fetched:', !!userProfile);
+
+      if (userProfile) {
+        const userData = {
+          id: userProfile.id,
+          email: userProfile.email,
+          firstName: userProfile.first_name || userProfile.full_name?.split(' ')[0] || 'User',
+          lastName: userProfile.last_name || userProfile.full_name?.split(' ').slice(1).join(' ') || '',
+          accountNumber: userProfile.account_number,
+          balance: userProfile.balance || 0
+        };
+        localStorage.setItem("user", JSON.stringify(userData));
+        console.log('💾 SignIn: User data saved to localStorage');
+      }
+
+      // Send login notification email (optional, don't block login if it fails)
+      console.log('📧 SignIn: Sending login notification email');
+      try {
+        await supabase.functions.invoke('send-login-notification', {
+          body: {
+            email: userEmail,
+            userName: userProfile?.first_name || 'User'
+          }
+        });
+        console.log('✅ SignIn: Login notification sent');
+      } catch (e) {
+        console.log('⚠️ SignIn: Login notification failed (non-critical):', e);
+      }
+
+      console.log('🎉 SignIn: Login process completed successfully!');
       toast.success("Login successful!");
       navigate("/dashboard");
 
     } catch (error) {
+      console.error('💥 SignIn: Unexpected error during login:', error);
       toast.error("An error occurred. Please try again.");
       setLoading(false);
     }

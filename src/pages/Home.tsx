@@ -10,6 +10,12 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Function to capitalize first letter of a string
+  const capitalizeFirstLetter = (str: string) => {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  };
+
   useEffect(() => {
     const userData = localStorage.getItem("user");
     if (userData) {
@@ -47,7 +53,7 @@ const Home = () => {
         {/* Welcome Section */}
         <div className="text-left mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Hi, {user.firstName}
+            Hi, {capitalizeFirstLetter(user.firstName)}
           </h2>
         </div>
 

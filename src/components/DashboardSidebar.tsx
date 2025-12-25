@@ -388,6 +388,35 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ user }) => {
           </div>
         )}
 
+        {/* Digital Assets Section */}
+        {groupedServices.crypto && groupedServices.crypto.length > 0 && (
+          <div className="mb-6">
+            <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">
+              {categoryTitles.crypto}
+            </h4>
+            <div className="space-y-1">
+              {groupedServices.crypto.map((service) => {
+                const Icon = service.icon;
+                return (
+                  <Button
+                    key={service.id}
+                    variant="ghost"
+                    onClick={() => service.path && handleServiceClick(service.path)}
+                    className={`w-full justify-start text-left px-2 py-2 rounded-lg transition-colors group ${getCategoryColor(service.category)}`}
+                  >
+                    <div className="flex items-center space-x-2 flex-1">
+                      <div className="p-1.5 rounded-md bg-gray-200 group-hover:bg-red-700 transition-colors">
+                        <Icon className="h-4 w-4 text-gray-700 group-hover:text-white" />
+                      </div>
+                      <span className="text-xs font-medium flex-1">{service.title}</span>
+                    </div>
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Card Services */}
         {groupedServices.cards && groupedServices.cards.length > 0 && (
           <div className="mb-6">
@@ -619,35 +648,6 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ user }) => {
                         <span className="text-xs font-medium flex-1">{service.title}</span>
                       </div>
                     </Button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Crypto Section */}
-        {groupedServices.crypto && groupedServices.crypto.length > 0 && (
-          <div className="mb-6">
-            <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">
-              {categoryTitles.crypto}
-            </h4>
-            <div className="space-y-1">
-              {groupedServices.crypto.map((service) => {
-                const Icon = service.icon;
-                return (
-                  <Button
-                    key={service.id}
-                    variant="ghost"
-                    onClick={() => service.path && handleServiceClick(service.path)}
-                    className={`w-full justify-start text-left px-2 py-2 rounded-lg transition-colors group ${getCategoryColor(service.category)}`}
-                  >
-                    <div className="flex items-center space-x-2 flex-1">
-                      <div className="p-1.5 rounded-md bg-gray-200 group-hover:bg-red-700 transition-colors">
-                        <Icon className="h-4 w-4 text-gray-700 group-hover:text-white" />
-                      </div>
-                      <span className="text-xs font-medium flex-1">{service.title}</span>
-                    </div>
-                  </Button>
                 );
               })}
             </div>

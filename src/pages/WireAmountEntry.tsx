@@ -34,10 +34,10 @@ const WireAmountEntry: React.FC = () => {
     if (accountData) {
       setSelectedAccount(JSON.parse(accountData));
     } else {
-      // If no account selected, redirect back to account selection
-      navigate('/transfer');
+      // If no account selected, redirect to wire account selection
+      navigate('/wire-account-selection');
     }
-  }, [navigate]);
+  }, []); // Remove navigate from dependency array to prevent infinite loop
 
   const fetchUserData = async () => {
     try {
@@ -159,7 +159,7 @@ const WireAmountEntry: React.FC = () => {
           user={userData}
           showBackButton={true} 
           title="Send Money"
-          onBackClick={() => navigate('/transfer')}
+          onBackClick={() => navigate('/dashboard')}
         />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -172,7 +172,7 @@ const WireAmountEntry: React.FC = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-red-900">Wire Transfers Blocked</h3>
                   <p className="text-red-700 mt-1">
-                    Your account has been restricted from making wire transfers. Please contact customer support for assistance.
+                    {userData?.profile?.wire_transfer_block_reason || 'Your account has been restricted from making wire transfers. Please contact customer support for assistance.'}
                   </p>
                 </div>
               </div>
@@ -181,7 +181,7 @@ const WireAmountEntry: React.FC = () => {
             <div className="flex space-x-4">
               <Button
                 variant="outline"
-                onClick={() => navigate('/transfer')}
+                onClick={() => navigate('/dashboard')}
                 className="flex-1 py-3 text-gray-700 border-gray-300 hover:bg-gray-50 hover:text-gray-900"
               >
                 BACK
@@ -217,7 +217,7 @@ const WireAmountEntry: React.FC = () => {
         user={userData}
         showBackButton={true} 
         title="Send Money"
-        onBackClick={() => navigate('/transfer')}
+        onBackClick={() => navigate('/dashboard')}
       />
 
       {/* Content */}
@@ -322,7 +322,7 @@ const WireAmountEntry: React.FC = () => {
           <div className="flex space-x-4">
             <Button
               variant="outline"
-              onClick={() => navigate('/transfer')}
+              onClick={() => navigate('/dashboard')}
               className="flex-1 py-3 text-gray-700 border-gray-300 hover:bg-gray-50 hover:text-gray-900"
             >
               BACK

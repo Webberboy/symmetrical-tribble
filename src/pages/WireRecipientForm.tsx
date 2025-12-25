@@ -48,7 +48,7 @@ const WireRecipientForm: React.FC = () => {
     if (accountData) {
       setSelectedAccount(JSON.parse(accountData));
     } else {
-      navigate('/transfer');
+      navigate('/wire-amount-entry');
       return;
     }
 
@@ -166,7 +166,7 @@ const WireRecipientForm: React.FC = () => {
           user={userData}
           showBackButton={true} 
           title="Send Money"
-          onBackClick={() => navigate('/wire-amount-entry')}
+          onBackClick={() => navigate('/dashboard')}
         />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -179,7 +179,7 @@ const WireRecipientForm: React.FC = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-red-900">Wire Transfers Blocked</h3>
                   <p className="text-red-700 mt-1">
-                    Your account has been restricted from making wire transfers. Please contact customer support for assistance.
+                    {userData?.profile?.wire_transfer_block_reason || 'Your account has been restricted from making wire transfers. Please contact customer support for assistance.'}
                   </p>
                 </div>
               </div>
@@ -188,16 +188,16 @@ const WireRecipientForm: React.FC = () => {
             <div className="flex space-x-4">
               <Button
                 variant="outline"
-                onClick={() => navigate('/wire-amount-entry')}
+                onClick={() => navigate('/dashboard')}
                 className="flex-1 py-3 text-gray-700 border-gray-300 hover:bg-gray-50 hover:text-gray-900"
               >
                 BACK
               </Button>
               <Button
-                onClick={() => navigate('/transfer')}
+                onClick={() => navigate('/dashboard')}
                 className="flex-1 py-3 font-semibold bg-gray-800 hover:bg-gray-900 text-white"
               >
-                RETURN TO TRANSFER
+                RETURN TO DASHBOARD
               </Button>
             </div>
           </div>

@@ -202,8 +202,9 @@ const BankingServices: React.FC = () => {
         .single();
 
       if (error || !accountsData) {
-        // If no checking account found, fall back to normal flow
-        navigate('/transfer');
+        // If no checking account found, still go to wire amount entry
+        // The WireAccountSelection component will auto-select or show available accounts
+        navigate('/wire-amount-entry');
         return;
       }
 
@@ -220,8 +221,9 @@ const BankingServices: React.FC = () => {
       localStorage.setItem('wireTransferAccount', JSON.stringify(checkingAccount));
       navigate('/wire-amount-entry');
     } catch (error) {
-      // If any error occurs, fall back to normal flow
-      navigate('/transfer');
+      // If any error occurs, still go to wire amount entry
+      // The WireAccountSelection component will handle account selection
+      navigate('/wire-amount-entry');
     }
   };
 

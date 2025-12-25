@@ -9,7 +9,7 @@ const BottomNavigation: React.FC = () => {
   };
 
   const handleTermsClick = () => {
-    navigate('/terms-and-conditions');
+    navigate('/terms');
   };
 
   return (

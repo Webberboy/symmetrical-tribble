@@ -36,7 +36,7 @@ const WireSuccess: React.FC = () => {
       try {
         const data = localStorage.getItem('wireTransferAuth');
         if (!data) {
-          navigate('/transfer');
+          navigate('/wire-amount-entry');
           return;
         }
 
@@ -115,7 +115,7 @@ const WireSuccess: React.FC = () => {
         localStorage.removeItem('wireTransferAuth');
         
       } catch (error) {
-        navigate('/transfer');
+        navigate('/wire-amount-entry');
       } finally {
         setIsLoading(false);
       }

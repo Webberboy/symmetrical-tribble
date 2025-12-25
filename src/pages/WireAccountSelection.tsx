@@ -82,7 +82,6 @@ const WireAccountSelection = () => {
         return;
       }
 
-
       // Create account objects with real data from accounts table
       const userAccounts: Account[] = accountsData.map(account => ({
         id: account.account_type, // 'checking' or 'savings'
@@ -92,6 +91,15 @@ const WireAccountSelection = () => {
         accountNumber: account.account_number // Each has unique account number
       }));
 
+      // Auto-select checking account and redirect to amount entry
+      const checkingAccount = userAccounts.find(acc => acc.id === 'checking');
+      if (checkingAccount) {
+        localStorage.setItem('wireTransferAccount', JSON.stringify(checkingAccount));
+        navigate('/wire-amount-entry');
+        return; // Exit early to prevent showing the selection UI
+      }
+
+      // If no checking account, show available accounts for manual selection
       setAccounts(userAccounts);
     } catch (error) {
       toast.error('Failed to load accounts');
@@ -218,17 +226,17 @@ const WireAccountSelection = () => {
                       <h3 className={`font-semibold ${
                         selectedAccount === account.id 
                           ? 'text-gray-900' 
-                          : 'text-white'
+                          : 'text-gray-900'
                       }`}>{account.name}</h3>
                       <p className={`text-sm ${
                         selectedAccount === account.id 
                           ? 'text-gray-600' 
-                          : 'text-gray-300'
+                          : 'text-gray-600'
                       }`}>{account.type}</p>
                       <p className={`text-sm ${
                         selectedAccount === account.id 
                           ? 'text-gray-500' 
-                          : 'text-gray-400'
+                          : 'text-gray-500'
                       }`}>{account.accountNumber}</p>
                     </div>
                   </div>
@@ -236,14 +244,14 @@ const WireAccountSelection = () => {
                     <p className={`text-lg font-semibold ${
                       selectedAccount === account.id 
                         ? 'text-gray-900' 
-                        : 'text-white'
+                        : 'text-gray-900'
                     }`}>
                       {formatBalance(account.balance)}
                     </p>
                     <p className={`text-sm ${
                       selectedAccount === account.id 
                         ? 'text-gray-500' 
-                        : 'text-gray-400'
+                        : 'text-gray-500'
                     }`}>Available Balance</p>
                   </div>
                   <ChevronRight className="h-5 w-5 text-gray-400" />

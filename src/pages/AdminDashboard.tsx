@@ -523,7 +523,8 @@ const AdminDashboard = () => {
 
               {/* Wire Transfer Tab - Contains personal/account info */}
               <TabsContent value="wire-transfer" className="space-y-6">
-                {/* Personal Information */}
+                {/* Personal Information - Commented Out */}
+                {/*
                 <div className="space-y-4">
                   <h3 className="text-base sm:text-lg font-semibold text-white border-b border-gray-700 pb-2">
                     Personal Information
@@ -563,8 +564,10 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                 </div>
+                */}
 
-                {/* Address Information */}
+                {/* Address Information - Commented Out */}
+                {/*
                 <div className="space-y-4">
                   <h3 className="text-base sm:text-lg font-semibold text-white border-b border-gray-700 pb-2">
                     Address Information
@@ -604,6 +607,7 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                 </div>
+                */}
 
                 {/* Account Information - Commented Out */}
                 {/*

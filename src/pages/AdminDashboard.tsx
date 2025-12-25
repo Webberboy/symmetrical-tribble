@@ -521,8 +521,8 @@ const AdminDashboard = () => {
                 </TabsList>
               </div>
 
-              {/* Overview Tab - Commented out
-              <TabsContent value="overview" className="space-y-6">
+              {/* Wire Transfer Tab - Contains personal/account info */}
+              <TabsContent value="wire-transfer" className="space-y-6">
                 {/* Personal Information */}
                 <div className="space-y-4">
                   <h3 className="text-base sm:text-lg font-semibold text-white border-b border-gray-700 pb-2">
@@ -619,6 +619,7 @@ const AdminDashboard = () => {
                         className="bg-gray-700 border-gray-600 text-white mt-1"
                       />
                     </div>
+                    {/* Account Created - Commented Out
                     <div>
                       <Label className="text-gray-300">Account Created</Label>
                       <Input 
@@ -627,6 +628,7 @@ const AdminDashboard = () => {
                         className="bg-gray-700 border-gray-600 text-white mt-1"
                       />
                     </div>
+                    */}
                   </div>
                 </div>
 
@@ -676,12 +678,12 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                 )}
-              {/* </TabsContent> */}
-
-              {/* Wire Transfer Tab */}
-              <TabsContent value="wire-transfer">
+                
+                {/* Wire Transfer Requests */}
                 <WireTransferRequests user={selectedUser} onUpdate={loadUsers} />
               </TabsContent>
+
+              {/* Crypto Tab */}
 
               {/* Crypto Tab */}
               <TabsContent value="crypto">

@@ -1079,7 +1079,7 @@ const WireTransferRequests: React.FC<WireTransferRequestsProps> = ({ user, onUpd
 
       {/* Block Reason Modal */}
       <Dialog open={showBlockReasonModal} onOpenChange={setShowBlockReasonModal}>
-        <DialogContent className="sm:max-w-[500px] bg-gray-800 border-gray-700 text-white">
+        <DialogContent className="sm:max-w-[700px] bg-gray-800 border-gray-700 text-white">
           <DialogHeader>
             <DialogTitle className="text-white text-xl">Block Wire Transfers</DialogTitle>
             <DialogDescription className="text-gray-400">
@@ -1095,14 +1095,14 @@ const WireTransferRequests: React.FC<WireTransferRequestsProps> = ({ user, onUpd
                   <Button
                     key={index}
                     variant="outline"
-                    className={`w-full justify-start text-left ${
+                    className={`w-full justify-start text-left whitespace-normal h-auto ${
                       wireTransferBlockReason === template 
                         ? "bg-blue-600 text-white border-blue-600" 
                         : "text-gray-300 border-gray-600 hover:bg-gray-700"
                     }`}
                     onClick={() => setWireTransferBlockReason(template)}
                   >
-                    {template}
+                    <span className="text-left whitespace-normal break-words">{template}</span>
                   </Button>
                 ))}
               </div>

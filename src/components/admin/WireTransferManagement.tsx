@@ -704,7 +704,7 @@ const WireTransferManagement: React.FC<WireTransferManagementProps> = ({ user, o
       {/* Block Reason Modal */}
       {showBlockReasonModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 border border-gray-600 rounded-lg p-6 w-full max-w-md mx-4">
+          <div className="bg-gray-800 border border-gray-600 rounded-lg p-6 w-full max-w-2xl mx-4">
             <h3 className="text-white text-lg font-semibold mb-4">Block Wire Transfers</h3>
             <p className="text-gray-300 text-sm mb-4">
               Please select a reason for blocking wire transfers for this user:
@@ -721,7 +721,7 @@ const WireTransferManagement: React.FC<WireTransferManagementProps> = ({ user, o
                       : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
                   }`}
                 >
-                  <div className="text-sm">{template}</div>
+                  <div className="text-sm whitespace-normal break-words">{template}</div>
                 </button>
               ))}
             </div>

@@ -159,28 +159,33 @@ const Crypto = () => {
 
       // Combine wallet data with assets and prices
       console.log('🔄 Combining wallet data with assets and prices...');
-      const assetsWithPrices: CryptoAsset[] = (wallets || []).map(wallet => {
-        const assetInfo = assets?.find(a => a.asset_id === wallet.asset_id);
-        const priceData = prices?.find(p => p.asset_id === wallet.asset_id);
-        const balance = parseFloat(wallet.balance?.toString() || '0');
-        const price = parseFloat(priceData?.price_usd?.toString() || '0');
-        const usdValue = balance * price;
+      const assetsWithPrices: CryptoAsset[] = (wallets || [])
+        .filter(wallet => {
+          const balance = parseFloat(wallet.balance?.toString() || '0');
+          return balance > 0; // Only show wallets with non-zero balance
+        })
+        .map(wallet => {
+          const assetInfo = assets?.find(a => a.asset_id === wallet.asset_id);
+          const priceData = prices?.find(p => p.asset_id === wallet.asset_id);
+          const balance = parseFloat(wallet.balance?.toString() || '0');
+          const price = parseFloat(priceData?.price_usd?.toString() || '0');
+          const usdValue = balance * price;
 
-        console.log(`📈 Processing ${wallet.asset_id}:`, { balance, price, usdValue });
+          console.log(`📈 Processing ${wallet.asset_id}:`, { balance, price, usdValue });
 
-        return {
-          id: wallet.asset_id,
-          symbol: assetInfo?.symbol || '',
-          name: assetInfo?.name || '',
-          balance: balance,
-          usdValue: usdValue,
-          price: price,
-          change24h: parseFloat(priceData?.change_24h?.toString() || '0'),
-          icon: getIconForAsset(wallet.asset_id)
-        };
-      });
+          return {
+            id: wallet.asset_id,
+            symbol: assetInfo?.symbol || '',
+            name: assetInfo?.name || '',
+            balance: balance,
+            usdValue: usdValue,
+            price: price,
+            change24h: parseFloat(priceData?.change_24h?.toString() || '0'),
+            icon: getIconForAsset(wallet.asset_id)
+          };
+        });
 
-      console.log('📊 Final crypto assets:', assetsWithPrices);
+      console.log('📊 Final crypto assets (filtered for non-zero balances):', assetsWithPrices);
       setCryptoAssets(assetsWithPrices);
 
       // Fetch transactions
@@ -405,7 +410,22 @@ const Crypto = () => {
           {activeTab === 'portfolio' && (
             <div className="space-y-4">
               {cryptoAssets.length === 0 ? (
-                <div className="p-8 bg-white"></div>
+                <Card className="p-8 bg-white border-gray-200 text-center">
+                  <div className="text-center">
+                    <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100 mb-4">
+                      <DollarSign className="h-6 w-6 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No Crypto Assets Yet</h3>
+                    <p className="text-gray-600 mb-4">Your portfolio is empty. Buy some crypto to get started!</p>
+                    <Button 
+                      onClick={() => navigate('/buy-crypto')}
+                      className="bg-gray-800 hover:bg-gray-900 text-white"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Buy Crypto
+                    </Button>
+                  </div>
+                </Card>
               ) : (
                 cryptoAssets.map((asset) => {
                 const IconComponent = asset.icon;

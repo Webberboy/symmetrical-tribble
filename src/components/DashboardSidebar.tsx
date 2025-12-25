@@ -206,10 +206,46 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ user }) => {
     navigate("/auth");
   };
 
-  const handleServiceClick = (path: string) => {
+  const handleServiceClick = async (path: string) => {
     if (path === '/transfer') {
-      // Handle wire transfer separately if needed
-      navigate(path);
+      // Auto-select checking account and skip selection page for wire transfers
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          navigate('/signin');
+          return;
+        }
+
+        // Fetch checking account
+        const { data: accountsData, error } = await supabase
+          .from('accounts')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('account_type', 'checking')
+          .single();
+
+        if (error || !accountsData) {
+          // If no checking account found, fall back to normal flow
+          navigate('/transfer');
+          return;
+        }
+
+        // Create checking account object and store in localStorage
+        const checkingAccount = {
+          id: 'checking',
+          name: 'My Checking',
+          type: 'Checking Account',
+          balance: accountsData.checking_balance || 0.00,
+          accountNumber: accountsData.account_number,
+          account_type: 'checking'
+        };
+
+        localStorage.setItem('wireTransferAccount', JSON.stringify(checkingAccount));
+        navigate('/wire-amount-entry');
+      } catch (error) {
+        // If any error occurs, fall back to normal flow
+        navigate('/transfer');
+      }
     } else {
       navigate(path);
     }

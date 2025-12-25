@@ -1378,6 +1378,8 @@ const Loans = () => {
             >
               Overview
             </button>
+            {/* Apply tab commented out - leaving only Overview and History tabs visible */}
+            {/*
             <button
               onClick={() => setActiveTab('apply')}
               className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
@@ -1388,6 +1390,7 @@ const Loans = () => {
             >
               Apply
             </button>
+            */}
             <button
               onClick={() => setActiveTab('history')}
               className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
@@ -1403,7 +1406,8 @@ const Loans = () => {
 
         {/* Tab Content */}
         {activeTab === 'overview' && renderOverview()}
-        {activeTab === 'apply' && renderLoanApplication()}
+        {/* Apply tab content commented out - leaving only Overview and History tabs visible */}
+        {/* {activeTab === 'apply' && renderLoanApplication()} */}
         {activeTab === 'history' && renderHistory()}
 
         {/* Loan Application Popup */}

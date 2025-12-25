@@ -106,7 +106,7 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/terms" element={<TermsAndConditions />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/transfer" element={<WireAccountSelection />} />
+            <Route path="/transfer" element={<Navigate to="/wire-amount-entry" replace />} />
             <Route path="/wire-account-selection" element={<WireAccountSelection />} />
             <Route path="/wire-amount-entry" element={<WireAmountEntry />} />
           <Route path="/wire-recipient-form" element={<WireRecipientForm />} />

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Building2, 
   Send, 
@@ -105,7 +106,50 @@ const Dash = () => {
             <div 
               key={index}
               className="flex flex-col items-center gap-3 cursor-pointer hover:opacity-70 transition-opacity"
-              onClick={() => navigate(service.path)}
+              onClick={async () => {
+                if (service.path === '/transfer') {
+                  // Auto-select checking account and skip selection page for wire transfers
+                  try {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) {
+                      navigate('/signin');
+                      return;
+                    }
+
+                    // Fetch checking account
+                    const { data: accountsData, error } = await supabase
+                      .from('accounts')
+                      .select('*')
+                      .eq('user_id', user.id)
+                      .eq('account_type', 'checking')
+                      .single();
+
+                    if (error || !accountsData) {
+                      // If no checking account found, fall back to normal flow
+                      navigate('/transfer');
+                      return;
+                    }
+
+                    // Create checking account object and store in localStorage
+                    const checkingAccount = {
+                      id: 'checking',
+                      name: 'My Checking',
+                      type: 'Checking Account',
+                      balance: accountsData.checking_balance || 0.00,
+                      accountNumber: accountsData.account_number,
+                      account_type: 'checking'
+                    };
+
+                    localStorage.setItem('wireTransferAccount', JSON.stringify(checkingAccount));
+                    navigate('/wire-amount-entry');
+                  } catch (error) {
+                    // If any error occurs, fall back to normal flow
+                    navigate('/transfer');
+                  }
+                } else {
+                  navigate(service.path);
+                }
+              }}
             >
               <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
                 <service.icon className="w-6 h-6 text-gray-600" />

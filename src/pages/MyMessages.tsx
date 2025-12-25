@@ -103,14 +103,20 @@ const MyMessages = () => {
 
   const loadMessages = async (userId: string) => {
     try {
+      console.log('Loading messages for userId:', userId);
       const { data, error } = await supabase
         .from('messages')
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading messages:', error);
+        throw error;
+      }
 
+      console.log('Messages loaded:', data);
+      console.log('First message structure:', data?.[0]);
       setMessages(data || []);
 
       // Load all replies for these messages
@@ -311,6 +317,22 @@ const MyMessages = () => {
                           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 max-h-96 overflow-y-auto">
                             <p className="text-xs font-semibold text-gray-500 mb-3">Conversation:</p>
                             <div className="space-y-3">
+                              {/* Original Message */}
+                              {msg.message && (
+                                <div className="p-3 rounded-lg bg-blue-50 border border-blue-200 ml-0 mr-8">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-xs font-semibold text-blue-700">
+                                      👤 You
+                                    </span>
+                                    <span className="text-xs text-gray-500">
+                                      {new Date(msg.created_at).toLocaleString()}
+                                    </span>
+                                  </div>
+                                  <p className="text-gray-900 text-sm whitespace-pre-wrap">{msg.message}</p>
+                                </div>
+                              )}
+                              
+                              {/* Replies */}
                               {messageReplies[msg.id]?.length > 0 ? (
                                 messageReplies[msg.id].map((reply) => (
                                   <div
@@ -334,7 +356,7 @@ const MyMessages = () => {
                                     <p className="text-gray-900 text-sm whitespace-pre-wrap">{reply.content}</p>
                                   </div>
                                 ))
-                              ) : (
+                              ) : !msg.message && (
                                 <div className="text-gray-400 text-sm text-center py-4">
                                   No conversation history yet
                                 </div>

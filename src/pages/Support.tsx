@@ -118,6 +118,8 @@ const Support = () => {
         .select()
         .single();
 
+      console.log('Message insert result:', { data, error });
+
       if (error) {
         
         // Check if table doesn't exist

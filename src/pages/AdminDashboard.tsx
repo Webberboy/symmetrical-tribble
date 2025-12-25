@@ -315,6 +315,7 @@ const AdminDashboard = () => {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <h1 className="text-xl sm:text-2xl font-bold text-white">{websiteName} - Admin Panel</h1>
             <nav className="flex gap-4 items-center">
+              {/* Commented out menu items
               <Button 
                 onClick={() => setIsUserCreationOpen(true)}
                 className="text-sm text-white hover:bg-gray-700"
@@ -353,6 +354,7 @@ const AdminDashboard = () => {
                 <Settings className="w-4 h-4 mr-2" />
                 Settings
               </Button>
+              */}
               <Button variant="ghost" onClick={handleLogout} className="text-sm text-white hover:bg-gray-700">
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
@@ -368,10 +370,10 @@ const AdminDashboard = () => {
           <p className="text-gray-400">View and manage all user accounts</p>
         </div>
 
-        {/* Debug Information Panel */}
+        {/* Management Overview - Commented out
         <Card className="bg-gray-800 border-gray-700 mb-6">
           <CardHeader>
-            <CardTitle className="text-white text-lg">Debug Information</CardTitle>
+            <CardTitle className="text-white text-lg">Management Overview</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
@@ -399,6 +401,7 @@ const AdminDashboard = () => {
             </div>
           </CardContent>
         </Card>
+        */}
 
         <Card className="bg-gray-800 border-gray-700">
           <CardHeader>
@@ -500,21 +503,25 @@ const AdminDashboard = () => {
           </DialogHeader>
           
           {selectedUser && (
-            <Tabs defaultValue="overview" className="w-full" onValueChange={handleTabChange}>
+            <Tabs defaultValue="wire-transfer" className="w-full" onValueChange={handleTabChange}>
               <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 -mx-2 px-2">
                 <TabsList className="inline-flex w-auto min-w-full bg-gray-700 mb-4 gap-1">
+                  {/* Commented out Overview tab
                   <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600 text-xs sm:text-sm whitespace-nowrap">Overview</TabsTrigger>
+                  */}
                   <TabsTrigger value="wire-transfer" className="data-[state=active]:bg-blue-600 text-xs sm:text-sm whitespace-nowrap">Wire Transfer</TabsTrigger>
                   <TabsTrigger value="crypto" className="data-[state=active]:bg-blue-600 text-xs sm:text-sm whitespace-nowrap">Crypto</TabsTrigger>
                   <TabsTrigger value="loans" className="data-[state=active]:bg-blue-600 text-xs sm:text-sm whitespace-nowrap">Loans</TabsTrigger>
                   <TabsTrigger value="transactions" className="data-[state=active]:bg-blue-600 text-xs sm:text-sm whitespace-nowrap">Transactions</TabsTrigger>
                   <TabsTrigger value="investments" className="data-[state=active]:bg-blue-600 text-xs sm:text-sm whitespace-nowrap">Investments</TabsTrigger>
+                  {/* Commented out Notifications tab
                   <TabsTrigger value="notifications" className="data-[state=active]:bg-blue-600 text-xs sm:text-sm whitespace-nowrap">Notifications</TabsTrigger>
+                  */}
                   <TabsTrigger value="messages" className="data-[state=active]:bg-blue-600 text-xs sm:text-sm whitespace-nowrap">Messages</TabsTrigger>
                 </TabsList>
               </div>
 
-              {/* Overview Tab */}
+              {/* Overview Tab - Commented out
               <TabsContent value="overview" className="space-y-6">
                 {/* Personal Information */}
                 <div className="space-y-4">
@@ -669,7 +676,7 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                 )}
-              </TabsContent>
+              {/* </TabsContent> */}
 
               {/* Wire Transfer Tab */}
               <TabsContent value="wire-transfer">
@@ -696,10 +703,11 @@ const AdminDashboard = () => {
                 <InvestmentManagement user={selectedUser} />
               </TabsContent>
 
-              {/* Global Notifications Tab */}
+              {/* Global Notifications Tab - Commented Out
               <TabsContent value="notifications" className="space-y-4 py-8">
                 <NotificationManagement user={selectedUser} />
               </TabsContent>
+              */}
 
               {/* Messages Tab */}
               <TabsContent value="messages" className="space-y-4">

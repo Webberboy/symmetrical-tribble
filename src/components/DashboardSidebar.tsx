@@ -236,7 +236,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ user }) => {
           id: 'checking',
           name: 'My Checking',
           type: 'Checking Account',
-          balance: accountsData.checking_balance || 0.00,
+          balance: accountsData.checking_balance || accountsData.balance || 0.00,
           accountNumber: accountsData.account_number,
           account_type: 'checking'
         };

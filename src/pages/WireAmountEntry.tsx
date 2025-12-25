@@ -32,7 +32,9 @@ const WireAmountEntry: React.FC = () => {
     // Get selected account from localStorage
     const accountData = localStorage.getItem('wireTransferAccount');
     if (accountData) {
-      setSelectedAccount(JSON.parse(accountData));
+      const parsedAccount = JSON.parse(accountData);
+      console.log('WireAmountEntry - Retrieved account from localStorage:', parsedAccount);
+      setSelectedAccount(parsedAccount);
     } else {
       // If no account selected, redirect to wire account selection
       navigate('/wire-account-selection');

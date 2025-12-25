@@ -114,8 +114,8 @@ const InternalTransfer = () => {
           name: account.account_type === 'checking' ? 'My Checking' : 'My Savings',
           type: account.account_type === 'checking' ? 'Checking Account' : 'Savings Account',
           balance: account.account_type === 'checking' 
-            ? (account.checking_balance || 0.00)
-            : (account.savings_balance || 0.00),
+            ? (account.checking_balance || account.balance || 0.00)
+            : (account.savings_balance || account.balance || 0.00),
           accountNumber: `****${lastFourDigits}` // Show last 4 digits
         };
       });

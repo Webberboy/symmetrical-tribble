@@ -87,13 +87,14 @@ const WireAccountSelection = () => {
         id: account.account_type, // 'checking' or 'savings'
         name: account.account_type === 'checking' ? 'My Checking' : 'My Savings',
         type: account.account_type === 'checking' ? 'Checking Account' : 'Savings Account',
-        balance: account.account_type === 'checking' ? (account.checking_balance || 0.00) : (account.savings_balance || 0.00),
+        balance: account.account_type === 'checking' ? (account.checking_balance || account.balance || 0.00) : (account.savings_balance || account.balance || 0.00),
         accountNumber: account.account_number // Each has unique account number
       }));
 
       // Auto-select checking account and redirect to amount entry
       const checkingAccount = userAccounts.find(acc => acc.id === 'checking');
       if (checkingAccount) {
+        console.log('WireAccountSelection - Storing checking account in localStorage:', checkingAccount);
         localStorage.setItem('wireTransferAccount', JSON.stringify(checkingAccount));
         navigate('/wire-amount-entry');
         return; // Exit early to prevent showing the selection UI

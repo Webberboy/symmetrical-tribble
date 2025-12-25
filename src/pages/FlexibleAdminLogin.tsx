@@ -162,9 +162,6 @@ export default function FlexibleAdminLogin() {
           <CardDescription className="text-center">
             Sign in to access the admin dashboard
           </CardDescription>
-          <div className="text-xs text-center text-muted-foreground mt-2">
-            Auth Method: <span className="font-semibold text-blue-600">{ADMIN_AUTH_METHOD}</span>
-          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
@@ -218,28 +215,6 @@ export default function FlexibleAdminLogin() {
               {isLoading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
-
-          {/* Info box */}
-          <div className="mt-6 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
-            <div className="text-xs space-y-1">
-              <p className="font-semibold text-blue-900 dark:text-blue-100">Current Method: {ADMIN_AUTH_METHOD}</p>
-              {ADMIN_AUTH_METHOD === 'EMAIL_WHITELIST' && (
-                <p className="text-blue-700 dark:text-blue-300">Checks email against VITE_ADMIN_EMAILS list</p>
-              )}
-              {ADMIN_AUTH_METHOD === 'ADMIN_TABLE' && (
-                <p className="text-blue-700 dark:text-blue-300">Queries admin_users table for access</p>
-              )}
-              {ADMIN_AUTH_METHOD === 'AUTH_METADATA' && (
-                <p className="text-blue-700 dark:text-blue-300">Checks user_metadata.is_admin flag</p>
-              )}
-              {ADMIN_AUTH_METHOD === 'RPC_FUNCTION' && (
-                <p className="text-blue-700 dark:text-blue-300">Calls is_user_admin() database function</p>
-              )}
-              {ADMIN_AUTH_METHOD === 'COMBINED' && (
-                <p className="text-blue-700 dark:text-blue-300">Tries multiple methods automatically</p>
-              )}
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>

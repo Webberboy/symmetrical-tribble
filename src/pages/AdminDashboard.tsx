@@ -510,10 +510,12 @@ const AdminDashboard = () => {
                   <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600 text-xs sm:text-sm whitespace-nowrap">Overview</TabsTrigger>
                   */}
                   <TabsTrigger value="wire-transfer" className="data-[state=active]:bg-blue-600 text-xs sm:text-sm whitespace-nowrap">Wire Transfer</TabsTrigger>
+                  {/* Commented out Crypto, Loans, and Investment tabs
                   <TabsTrigger value="crypto" className="data-[state=active]:bg-blue-600 text-xs sm:text-sm whitespace-nowrap">Crypto</TabsTrigger>
                   <TabsTrigger value="loans" className="data-[state=active]:bg-blue-600 text-xs sm:text-sm whitespace-nowrap">Loans</TabsTrigger>
-                  <TabsTrigger value="transactions" className="data-[state=active]:bg-blue-600 text-xs sm:text-sm whitespace-nowrap">Transactions</TabsTrigger>
                   <TabsTrigger value="investments" className="data-[state=active]:bg-blue-600 text-xs sm:text-sm whitespace-nowrap">Investments</TabsTrigger>
+                  */}
+                  <TabsTrigger value="transactions" className="data-[state=active]:bg-blue-600 text-xs sm:text-sm whitespace-nowrap">Transactions</TabsTrigger>
                   {/* Commented out Notifications tab
                   <TabsTrigger value="notifications" className="data-[state=active]:bg-blue-600 text-xs sm:text-sm whitespace-nowrap">Notifications</TabsTrigger>
                   */}
@@ -689,25 +691,31 @@ const AdminDashboard = () => {
 
               {/* Crypto Tab */}
 
-              {/* Crypto Tab */}
+              {/* Crypto Tab - Commented Out */}
+              {/*
               <TabsContent value="crypto">
                 <CryptoManagement user={selectedUser} onUpdate={loadUsers} />
               </TabsContent>
+              */}
 
-              {/* Loans Tab */}
+              {/* Loans Tab - Commented Out */}
+              {/*
               <TabsContent value="loans" className="space-y-4">
                 <LoanManagement user={selectedUser} onUpdate={loadUsers} />
               </TabsContent>
+              */}
 
               {/* Transaction Builder Tab */}
               <TabsContent value="transactions" className="space-y-4">
                 <TransactionBuilder user={selectedUser} onUpdate={loadUsers} />
               </TabsContent>
 
-              {/* Investments Tab */}
+              {/* Investments Tab - Commented Out */}
+              {/*
               <TabsContent value="investments" className="space-y-4">
                 <InvestmentManagement user={selectedUser} />
               </TabsContent>
+              */}
 
               {/* Global Notifications Tab - Commented Out
               <TabsContent value="notifications" className="space-y-4 py-8">

@@ -47,6 +47,19 @@ const WireTransferRequests: React.FC<WireTransferRequestsProps> = ({ user, onUpd
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isWireTransfersBlocked, setIsWireTransfersBlocked] = useState(false);
+  const [wireTransferBlockReason, setWireTransferBlockReason] = useState<string>('');
+
+  // Predefined block reason templates
+  const blockReasonTemplates = [
+    "You have reached your daily wire transfer limit. Please contact support.",
+    "Your account is currently under review for security purposes. Please contact support.",
+    "Wire transfers have been temporarily suspended due to unusual activity. Please contact support.",
+    "Your account verification is incomplete. Please contact support.",
+    "Wire transfer privileges have been restricted pending documentation. Please contact support.",
+    "Your account has exceeded the monthly wire transfer limit. Please contact support.",
+    "Wire transfers are temporarily disabled for maintenance. Please contact support.",
+    "Additional security verification is required for wire transfers. Please contact support."
+  ];
   const [isUpdatingBlockStatus, setIsUpdatingBlockStatus] = useState(false);
 
   // Balance editing states
@@ -173,6 +186,12 @@ const WireTransferRequests: React.FC<WireTransferRequestsProps> = ({ user, onUpd
   const toggleWireTransferBlock = async () => {
     if (!user?.id) return;
 
+    // If blocking, check if reason is provided
+    if (!isWireTransfersBlocked && !wireTransferBlockReason.trim()) {
+      toast.error('Please provide a reason for blocking wire transfers');
+      return;
+    }
+
     setIsUpdatingBlockStatus(true);
     try {
       const newBlockStatus = !isWireTransfersBlocked;
@@ -181,6 +200,7 @@ const WireTransferRequests: React.FC<WireTransferRequestsProps> = ({ user, onUpd
         .from('profiles')
         .update({ 
           wire_transfers_blocked: newBlockStatus,
+          wire_transfer_block_reason: newBlockStatus ? wireTransferBlockReason : null,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -188,6 +208,9 @@ const WireTransferRequests: React.FC<WireTransferRequestsProps> = ({ user, onUpd
       if (error) throw error;
 
       setIsWireTransfersBlocked(newBlockStatus);
+      if (!newBlockStatus) {
+        setWireTransferBlockReason(''); // Clear reason when unblocking
+      }
       toast.success(`Wire transfers ${newBlockStatus ? 'blocked' : 'unblocked'} successfully!`);
       onUpdate();
     } catch (error: any) {
@@ -539,6 +562,37 @@ const WireTransferRequests: React.FC<WireTransferRequestsProps> = ({ user, onUpd
                 </div>
               )}
             </div>
+            
+            {/* Reason input for blocking wire transfers */}
+            {!isWireTransfersBlocked && (
+              <div className="mt-4 p-4 bg-gray-800 rounded-lg border border-gray-700">
+                <Label className="text-white mb-2 block">Reason for blocking wire transfers:</Label>
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    {blockReasonTemplates.map((template, index) => (
+                      <Button
+                        key={index}
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setWireTransferBlockReason(template)}
+                        className={wireTransferBlockReason === template 
+                          ? "bg-blue-600 text-white border-blue-600" 
+                          : "text-gray-300 border-gray-600 hover:bg-gray-700"
+                        }
+                      >
+                        {template}
+                      </Button>
+                    ))}
+                  </div>
+                  <Input
+                    placeholder="Or type your own reason..."
+                    value={wireTransferBlockReason}
+                    onChange={(e) => setWireTransferBlockReason(e.target.value)}
+                    className="bg-gray-700 border-gray-600 text-white"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </CardHeader>
         <CardContent className="space-y-4">

@@ -173,9 +173,9 @@ const WireAmountEntry: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-red-900">Wire Transfers Blocked</h3>
-                  <p className="text-red-700 mt-1">
+                  {/* <p className="text-red-700 mt-1">
                     {userData?.profile?.wire_transfer_block_reason || 'Your account has been restricted from making wire transfers. Please contact customer support for assistance.'}
-                  </p>
+                  </p> */}
                 </div>
               </div>
             </div>

@@ -90,43 +90,8 @@ const WireAmountEntry: React.FC = () => {
     }
     
     // Check if wire transfers are enabled for this user
-    try {
-      const { supabase } = await import('@/integrations/supabase/client');
-      const { toast } = await import('sonner');
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (user) {
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('wire_transfer_enabled, wire_transfer_block_reason')
-          .eq('id', user.id)
-          .single();
-
-        if (profileError) {
-        }
-
-        // If wire transfers are disabled, show error and redirect
-        if (profile && profile.wire_transfer_enabled === false) {
-          const blockReason = profile.wire_transfer_block_reason || 'Wire transfers are currently disabled for your account. Please contact support for assistance.';
-          toast.error(blockReason, {
-            duration: 8000,
-            style: {
-              background: '#7f1d1d',
-              color: '#fecaca',
-              border: '1px solid #991b1b',
-              fontSize: '15px',
-              fontWeight: '500'
-            }
-          });
-          setTimeout(() => {
-            navigate('/dashboard');
-          }, 1500);
-          return;
-        }
-      }
-    } catch (error) {
-    }
+    // This check is moved to a later step to speed up the initial navigation
+    // The profile check will be done on the next page instead
     
     // Store amount for next screens
     localStorage.setItem('wireTransferAmount', amount);

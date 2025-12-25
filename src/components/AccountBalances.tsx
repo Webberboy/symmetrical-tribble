@@ -39,16 +39,24 @@ const AccountBalances: React.FC = () => {
     fetchAccountData();
   }, []);
 
+  // Memoized user data to prevent redundant fetches
+  const [cachedUser, setCachedUser] = useState<any>(null);
+
   const fetchAccountData = async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // Check if user is authenticated using the utility function
-      const user = await getAuthenticatedUser(true, navigate);
+      // Use cached user data if available
+      let user = cachedUser;
       if (!user) {
-        // The utility function will handle redirect and toast
-        return;
+        // Check if user is authenticated using the utility function
+        user = await getAuthenticatedUser(true, navigate);
+        if (!user) {
+          // The utility function will handle redirect and toast
+          return;
+        }
+        setCachedUser(user); // Cache for future use
       }
 
       const { data: accountsData, error: accountsError } = await supabase
@@ -372,10 +380,63 @@ const AccountBalances: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="w-full flex items-center justify-center py-12">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading accounts...</p>
+      <div className="w-full space-y-6">
+        {/* Skeleton loading state for better UX */}
+        <div className="hidden md:block">
+          <div className="grid grid-cols-2 gap-6">
+            {[1, 2].map((i) => (
+              <div key={i} className="bg-white border border-gray-200 rounded-lg p-6 animate-pulse">
+                <div className="flex items-center space-x-2 mb-4">
+                  <div className="w-10 h-10 bg-gray-200 rounded-lg"></div>
+                  <div>
+                    <div className="h-4 bg-gray-200 rounded w-24 mb-1"></div>
+                    <div className="h-3 bg-gray-200 rounded w-16"></div>
+                  </div>
+                </div>
+                <div className="mb-4">
+                  <div className="h-3 bg-gray-200 rounded w-20 mb-1"></div>
+                  <div className="h-8 bg-gray-200 rounded w-32"></div>
+                </div>
+                <div className="border-t border-gray-200 my-4"></div>
+                <div className="mb-4">
+                  <div className="h-3 bg-gray-200 rounded w-16 mb-2"></div>
+                  <div className="h-10 bg-gray-200 rounded-lg"></div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="h-8 bg-gray-200 rounded"></div>
+                  <div className="h-8 bg-gray-200 rounded"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="md:hidden">
+          <div className="flex overflow-x-auto -mx-4 px-4 space-x-4">
+            {[1, 2].map((i) => (
+              <div key={i} className="w-full flex-shrink-0 bg-white border border-gray-200 rounded-lg p-6 animate-pulse">
+                <div className="flex items-center space-x-2 mb-4">
+                  <div className="w-10 h-10 bg-gray-200 rounded-lg"></div>
+                  <div>
+                    <div className="h-4 bg-gray-200 rounded w-24 mb-1"></div>
+                    <div className="h-3 bg-gray-200 rounded w-16"></div>
+                  </div>
+                </div>
+                <div className="mb-4">
+                  <div className="h-3 bg-gray-200 rounded w-20 mb-1"></div>
+                  <div className="h-8 bg-gray-200 rounded w-32"></div>
+                </div>
+                <div className="border-t border-gray-200 my-4"></div>
+                <div className="mb-4">
+                  <div className="h-3 bg-gray-200 rounded w-16 mb-2"></div>
+                  <div className="h-10 bg-gray-200 rounded-lg"></div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="h-8 bg-gray-200 rounded"></div>
+                  <div className="h-8 bg-gray-200 rounded"></div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -383,9 +444,62 @@ const AccountBalances: React.FC = () => {
 
   if (accounts.length === 0) {
     return (
-      <div className="w-full flex items-center justify-center py-12">
-        <div className="text-center">
-          <p className="text-gray-600">No accounts found</p>
+      <div className="w-full space-y-6">
+        {/* Empty state with helpful message */}
+        <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">No Accounts Found</h3>
+          <p className="text-gray-600 mb-4">You don't have any active accounts at the moment.</p>
+          <Button 
+            variant="outline" 
+            onClick={() => window.location.reload()}
+            className="border-gray-300 text-gray-700 hover:bg-gray-50"
+          >
+            Try Again
+          </Button>
+        </div>
+        
+        {/* Quick Actions Section - Still show even with no accounts */}
+        <div className="mt-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Button
+              variant="outline"
+              onClick={() => navigate('/internal-transfer')}
+              className="flex flex-col items-center justify-center p-4 h-24 bg-white border-gray-200 hover:bg-red-600 hover:text-white hover:border-red-600 transition-colors group"
+            >
+              <Transfer className="h-6 w-6 mb-2 text-gray-700 group-hover:text-white" />
+              <span className="text-sm font-medium">Transfer</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate('/cards')}
+              className="flex flex-col items-center justify-center p-4 h-24 bg-white border-gray-200 hover:bg-red-600 hover:text-white hover:border-red-600 transition-colors group"
+            >
+              <CreditCardIcon className="h-6 w-6 mb-2 text-gray-700 group-hover:text-white" />
+              <span className="text-sm font-medium">My Card</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate('/bills')}
+              className="flex flex-col items-center justify-center p-4 h-24 bg-white border-gray-200 hover:bg-red-600 hover:text-white hover:border-red-600 transition-colors group"
+            >
+              <Receipt className="h-6 w-6 mb-2 text-gray-700 group-hover:text-white" />
+              <span className="text-sm font-medium">Bills</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate('/crypto')}
+              className="flex flex-col items-center justify-center p-4 h-24 bg-white border-gray-200 hover:bg-red-600 hover:text-white hover:border-red-600 transition-colors group"
+            >
+              <Bitcoin className="h-6 w-6 mb-2 text-gray-700 group-hover:text-white" />
+              <span className="text-sm font-medium">Crypto</span>
+            </Button>
+          </div>
         </div>
       </div>
     );

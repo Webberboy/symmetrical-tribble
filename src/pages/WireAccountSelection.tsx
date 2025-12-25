@@ -24,8 +24,9 @@ const WireAccountSelection = () => {
   
   useEffect(() => {
     window.scrollTo(0, 0);
-    fetchUserData();
     fetchUserAccounts();
+    // Fetch user data in background without blocking
+    fetchUserData();
   }, []);
 
   const fetchUserData = async () => {
@@ -123,15 +124,28 @@ const WireAccountSelection = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header 
-          showBackButton={true} 
-          title="Send Money"
-          onBackClick={() => navigate('/dashboard')}
-        />
-        <div className="flex items-center justify-center py-20">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading your accounts...</p>
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          {/* Header Skeleton */}
+          <div className="mb-8">
+            <div className="h-8 w-64 bg-gray-200 rounded animate-pulse mb-2"></div>
+            <div className="h-4 w-96 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+          
+          {/* Account Selection Skeleton */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="h-6 w-32 bg-gray-200 rounded animate-pulse mb-6"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[1,2,3,4].map(i => (
+                <div key={i} className="border border-gray-200 rounded-lg p-4 cursor-pointer">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                  <div className="h-6 w-24 bg-gray-200 rounded animate-pulse mb-1"></div>
+                  <div className="h-3 w-32 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -158,17 +172,8 @@ const WireAccountSelection = () => {
     );
   }
 
-  // Show loader until both data and user profile are loaded
-  if (isLoading || !userData) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  // Don't block on user data - show accounts immediately once loaded
+  // Header will handle user data loading gracefully
 
   return (
     <div className="min-h-screen bg-gray-50">

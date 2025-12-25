@@ -24,6 +24,7 @@ import Header from '../components/Header';
 import { supabase } from '@/integrations/supabase/client';
 import { getBillPaymentHistory } from '@/lib/billsUtils';
 import { toast } from 'sonner';
+import { handleSmartError } from '@/lib/errorHandler';
 
 const BillHistory = () => {
   const navigate = useNavigate();
@@ -74,7 +75,7 @@ const BillHistory = () => {
       const payments = await getBillPaymentHistory(userData.user.id);
       setPaymentHistory(payments);
     } catch (error: any) {
-      toast.error(error.message || 'Failed to load payment history');
+      handleSmartError(error, 'BillHistory.fetchPaymentHistory', 'Failed to load payment history');
     } finally {
       setLoading(false);
     }

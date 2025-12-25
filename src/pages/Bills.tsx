@@ -24,6 +24,7 @@ import Header from '../components/Header';
 import { supabase } from '@/integrations/supabase/client';
 import { getUserBills, getBillPaymentHistory, getBillStatistics } from '@/lib/billsUtils';
 import { toast } from 'sonner';
+import { handleSmartError } from '@/lib/errorHandler';
 
 interface BillWithStatus {
   id: string;
@@ -135,7 +136,7 @@ const Bills = () => {
         overdueCount: stats.overdueCount
       });
     } catch (error: any) {
-      toast.error(error.message || 'Failed to load bills');
+      handleSmartError(error, 'Bills.fetchBillsData', 'Failed to load bills');
     } finally {
       setLoading(false);
     }

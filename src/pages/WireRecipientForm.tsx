@@ -37,7 +37,6 @@ const WireRecipientForm: React.FC = () => {
   const [userData, setUserData] = useState<any>(null);
 
   useEffect(() => {
-    fetchUserData();
     // Get selected account and amount from localStorage
     const accountData = localStorage.getItem('wireTransferAccount');
     const amountData = localStorage.getItem('wireTransferAmount');
@@ -55,6 +54,9 @@ const WireRecipientForm: React.FC = () => {
       navigate('/wire-amount-entry');
       return;
     }
+    
+    // Fetch user data in background without blocking UI
+    fetchUserData();
   }, [navigate]);
 
   const fetchUserData = async () => {
@@ -122,17 +124,8 @@ const WireRecipientForm: React.FC = () => {
            recipientData.bankAddress.trim() !== '';
   };
 
-  // Show loader until user profile is loaded
-  if (!userData) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  // Don't block UI on user data - show form immediately
+  // Header will handle loading state gracefully
 
   return (
     <div className="min-h-screen bg-gray-50">

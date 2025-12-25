@@ -263,12 +263,9 @@ const WireAuthorization: React.FC = () => {
       console.log('Saving authorization data to localStorage:', authData);
       localStorage.setItem('wireTransferAuth', JSON.stringify(authData));
       
-      console.log('Setting 2-second processing delay before navigation...');
-      // Simulate processing delay
-      setTimeout(() => {
-        console.log('Processing delay complete - navigating to /wire-success');
-        navigate('/wire-success');
-      }, 2000);
+      console.log('Processing transfer immediately - no artificial delay');
+      // Navigate immediately without artificial delay
+      navigate('/wire-success');
     } else {
       console.log('Transfer processing blocked - PIN not verified');
     }

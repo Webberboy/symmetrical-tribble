@@ -63,8 +63,7 @@ const Loans = () => {
   const [selectedLoanType, setSelectedLoanType] = useState<'personal' | 'home' | 'auto' | 'education'>('personal');
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  
-  // Real data state
+  const [showLoanPopup, setShowLoanPopup] = useState(false);
   const [loans, setLoans] = useState<any[]>([]);
   const [loanApplications, setLoanApplications] = useState<any[]>([]);
   const [loanTypes, setLoanTypes] = useState<any[]>([]);
@@ -516,7 +515,7 @@ const Loans = () => {
                 Apply for a loan to get started with your financial goals.
               </p>
               <Button 
-                onClick={() => setActiveTab('apply')}
+                onClick={() => setShowLoanPopup(true)}
                 className="mt-4 bg-blue-600 hover:bg-blue-700"
               >
                 Apply for a Loan
@@ -1406,6 +1405,33 @@ const Loans = () => {
         {activeTab === 'overview' && renderOverview()}
         {activeTab === 'apply' && renderLoanApplication()}
         {activeTab === 'history' && renderHistory()}
+
+        {/* Loan Application Popup */}
+        {showLoanPopup && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md mx-4">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <DollarSign className="w-8 h-8 text-yellow-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Loan Applications Temporarily Unavailable
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  You can apply for a loan yet. Please check back later or contact our support team for assistance.
+                </p>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setShowLoanPopup(false)}
+                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 px-4 rounded-md transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

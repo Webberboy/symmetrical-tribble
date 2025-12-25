@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { handleSupabaseError } from './errorHandler';
 
 // Bill interfaces
 export interface Bill {
@@ -71,7 +72,10 @@ export async function getUserBills(userId: string): Promise<Bill[]> {
     .eq('is_active', true)
     .order('next_due_date', { ascending: true });
 
-  if (error) throw error;
+  if (error) {
+    handleSupabaseError(error, 'getUserBills');
+    return [];
+  }
   return data || [];
 }
 
@@ -93,7 +97,10 @@ export async function getBillsByStatus(userId: string, status: 'upcoming' | 'ove
 
   const { data, error } = await query.order('next_due_date', { ascending: true });
 
-  if (error) throw error;
+  if (error) {
+    handleSupabaseError(error, 'getBillsByStatus');
+    return [];
+  }
   return data || [];
 }
 
@@ -108,7 +115,10 @@ export async function createBill(bill: Partial<Bill>): Promise<Bill> {
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    handleSupabaseError(error, 'createBill');
+    throw error; // Re-throw for user-facing components to handle
+  }
   return data;
 }
 
@@ -121,7 +131,10 @@ export async function updateBill(billId: string, updates: Partial<Bill>): Promis
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    handleSupabaseError(error, 'updateBill');
+    throw error; // Re-throw for user-facing components to handle
+  }
   return data;
 }
 
@@ -132,7 +145,10 @@ export async function deleteBill(billId: string): Promise<void> {
     .update({ is_active: false })
     .eq('id', billId);
 
-  if (error) throw error;
+  if (error) {
+    handleSupabaseError(error, 'deleteBill');
+    throw error; // Re-throw for user-facing components to handle
+  }
 }
 
 // Get bill payment history
@@ -165,7 +181,10 @@ export async function getBillPaymentHistory(
 
   const { data, error } = await query.order('paid_date', { ascending: false });
 
-  if (error) throw error;
+  if (error) {
+    handleSupabaseError(error, 'getBillPaymentHistory');
+    return [];
+  }
   return data || [];
 }
 
@@ -185,7 +204,10 @@ export async function createBillPayment(payment: Partial<BillPayment>): Promise<
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    handleSupabaseError(error, 'createBillPayment');
+    throw error; // Re-throw for user-facing components to handle
+  }
   return data;
 }
 

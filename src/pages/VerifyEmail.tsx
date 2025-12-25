@@ -213,9 +213,8 @@ const VerifyEmail = () => {
 
       toast.success("Email verified! Welcome to your account.");
       
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 2000);
+      // Navigate immediately after successful verification
+      navigate("/dashboard");
 
     } catch (error: any) {
       toast.error(error.message || "An error occurred during verification");

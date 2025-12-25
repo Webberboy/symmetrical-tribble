@@ -31,7 +31,11 @@ const Dashboard = () => {
           return;
         }
 
-        // Validate Supabase session using utility function
+        // Parse user data immediately to render UI faster
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+        
+        // Validate Supabase session asynchronously in background
         const isValidSession = await validateSession();
         
         if (!isValidSession) {
@@ -40,10 +44,6 @@ const Dashboard = () => {
           navigate("/auth");
           return;
         }
-
-        // Parse and set user data
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
       } catch (error) {
         console.error("Error validating session:", error);
         // Clear localStorage on any error and redirect
@@ -59,8 +59,78 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      <div className="min-h-screen bg-gray-50">
+        {/* Header Skeleton */}
+        <div className="bg-white shadow-sm border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              <div className="flex items-center space-x-4">
+                <div className="h-8 w-32 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+              <div className="flex items-center space-x-4">
+                <div className="h-8 w-8 bg-gray-200 rounded-full animate-pulse"></div>
+                <div className="h-8 w-8 bg-gray-200 rounded-full animate-pulse"></div>
+                <div className="h-8 w-8 bg-gray-200 rounded-full animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Main Content Skeleton */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Sidebar Skeleton */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="h-12 w-12 bg-gray-200 rounded-full animate-pulse"></div>
+                  <div className="space-y-2">
+                    <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-3 w-20 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  {[1,2,3,4,5].map(i => (
+                    <div key={i} className="h-10 bg-gray-200 rounded animate-pulse"></div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            {/* Main Content Skeleton */}
+            <div className="lg:col-span-3 space-y-8">
+              {/* Account Balances Skeleton */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <div className="h-6 w-32 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-8 w-24 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[1,2,3].map(i => (
+                    <div key={i} className="border border-gray-200 rounded-lg p-4">
+                      <div className="h-4 w-20 bg-gray-200 rounded animate-pulse mb-2"></div>
+                      <div className="h-6 w-24 bg-gray-200 rounded animate-pulse mb-2"></div>
+                      <div className="h-3 w-16 bg-gray-200 rounded animate-pulse"></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Quick Actions Skeleton */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div className="h-6 w-24 bg-gray-200 rounded animate-pulse mb-6"></div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[1,2,3,4].map(i => (
+                    <div key={i} className="border border-gray-200 rounded-lg p-4 h-24">
+                      <div className="h-6 w-6 bg-gray-200 rounded animate-pulse mx-auto mb-2"></div>
+                      <div className="h-4 w-16 bg-gray-200 rounded animate-pulse mx-auto"></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

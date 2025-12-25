@@ -60,15 +60,18 @@ export default function Profile() {
       }));
     }
 
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
+    // Remove artificial 1-second delay
+    setLoading(false);
   }, []);
 
   const fetchUserData = async () => {
     try {
+      // Skip if we already have user data from localStorage
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        return; // User data already available
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         navigate('/signin');
@@ -87,7 +90,6 @@ export default function Profile() {
           lastName: profile.last_name,
           email: user.email
         });
-        // Avatar is already loaded from UserContext, no need to set it here
       }
     } catch (error) {
     }
@@ -200,10 +202,50 @@ export default function Profile() {
 
   if (loading || !userData) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          {/* Profile Header Skeleton */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <div className="flex items-center space-x-4">
+              <div className="h-16 w-16 bg-gray-200 rounded-full animate-pulse"></div>
+              <div className="space-y-2">
+                <div className="h-6 w-32 bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Profile Content Skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Personal Information Skeleton */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="h-6 w-32 bg-gray-200 rounded animate-pulse mb-4"></div>
+              <div className="space-y-4">
+                {[1,2,3,4,5].map(i => (
+                  <div key={i}>
+                    <div className="h-4 w-20 bg-gray-200 rounded animate-pulse mb-2"></div>
+                    <div className="h-10 w-full bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Security Settings Skeleton */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="h-6 w-32 bg-gray-200 rounded animate-pulse mb-4"></div>
+              <div className="space-y-4">
+                {[1,2,3].map(i => (
+                  <div key={i} className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+                      <div className="h-3 w-32 bg-gray-200 rounded animate-pulse"></div>
+                    </div>
+                    <div className="h-6 w-12 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );

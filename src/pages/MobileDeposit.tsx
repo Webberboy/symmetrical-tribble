@@ -120,9 +120,9 @@ const MobileDeposit = () => {
           account_id: selectedAccount,
           amount: parseFloat(amount),
           status: 'pending',
-          front_image_url: frontImage,
-          back_image_url: backImage,
-          submitted_at: new Date().toISOString(),
+          check_front_image_url: frontImage,
+          check_back_image_url: backImage,
+          deposit_date: new Date().toISOString(),
         });
 
       if (error) throw error;

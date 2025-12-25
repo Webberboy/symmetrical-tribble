@@ -69,9 +69,6 @@ const AddMoney = () => {
     setIsLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
       // Update user balance in localStorage (for demo purposes)
       if (user) {
         const currentBalance = parseFloat(user.balance || "0");
@@ -88,7 +85,7 @@ const AddMoney = () => {
       setTimeout(() => {
         setAmount("");
         setIsSuccess(false);
-      }, 3000);
+      }, 1500);
 
     } catch (error) {
       toast.error("Failed to add money. Please try again.");

@@ -28,14 +28,33 @@ export default function GlobalNotifications({ userId, displayType }: GlobalNotif
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadNotifications();
     loadDismissals();
   }, [userId]);
 
+  // Memoized notifications to prevent redundant API calls
+  const [cachedNotifications, setCachedNotifications] = useState<Notification[]>([]);
+  const [cacheTimestamp, setCacheTimestamp] = useState<number>(0);
+
   const loadNotifications = async () => {
+    setLoading(true);
     try {
+      // Check cache validity (5 minutes)
+      const now = Date.now();
+      const cacheExpiry = 5 * 60 * 1000; // 5 minutes
+      
+      if (cachedNotifications.length > 0 && (now - cacheTimestamp) < cacheExpiry) {
+        setNotifications(cachedNotifications);
+        if (displayType === 'modal' && cachedNotifications.length > 0) {
+          setShowModal(true);
+        }
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('user_notifications')
         .select('*')
@@ -48,6 +67,10 @@ export default function GlobalNotifications({ userId, displayType }: GlobalNotif
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      
+      // Update cache
+      setCachedNotifications(data || []);
+      setCacheTimestamp(now);
       setNotifications(data || []);
       
       // Show modal if there are modal-type notifications
@@ -55,6 +78,8 @@ export default function GlobalNotifications({ userId, displayType }: GlobalNotif
         setShowModal(true);
       }
     } catch (error) {
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -128,6 +153,27 @@ export default function GlobalNotifications({ userId, displayType }: GlobalNotif
       };
     }
   };
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        {/* Notification Skeleton Items */}
+        <div className="space-y-4">
+          {[1,2,3].map(i => (
+            <div key={i} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg animate-pulse">
+              <div className="h-10 w-10 bg-gray-200 rounded-full"></div>
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-24 bg-gray-200 rounded"></div>
+                <div className="h-3 w-full bg-gray-200 rounded"></div>
+                <div className="h-3 w-32 bg-gray-200 rounded"></div>
+              </div>
+              <div className="h-4 w-8 bg-gray-200 rounded"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   const visibleNotifications = notifications.filter(n => !dismissedIds.has(n.id));
 

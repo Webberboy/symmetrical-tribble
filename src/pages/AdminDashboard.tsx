@@ -19,6 +19,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import Header from '@/components/Header';
 import WireTransferManagement from '@/components/admin/WireTransferManagement';
 import WireTransferRequests from '@/components/admin/WireTransferRequests';
 import CryptoManagement from '@/components/admin/CryptoManagement';

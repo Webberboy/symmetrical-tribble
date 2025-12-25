@@ -53,8 +53,8 @@ const WireAuthorization: React.FC = () => {
         console.log('LocalStorage wireFinalTransfer data:', data);
         
         if (!data) {
-          console.log('No transfer data found - redirecting to wire-account-selection');
-          navigate('/wire-account-selection');
+          console.log('No transfer data found - redirecting to transfer page');
+          navigate('/transfer');
           return;
         }
         
@@ -76,7 +76,7 @@ const WireAuthorization: React.FC = () => {
         }
       } catch (error) {
         console.error('Error loading transfer data:', error);
-        navigate('/wire-account-selection');
+        navigate('/transfer');
       } finally {
         setIsLoading(false);
       }
@@ -299,7 +299,7 @@ const WireAuthorization: React.FC = () => {
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <p className="text-gray-600">Unable to load transfer details</p>
           <button
-            onClick={() => navigate('/wire-account-selection')}
+            onClick={() => navigate('/transfer')}
             className="mt-4 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
           >
             Start Over

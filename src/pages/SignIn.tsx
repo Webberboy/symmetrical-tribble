@@ -143,19 +143,8 @@ const SignIn = () => {
         console.log('💾 SignIn: User data saved to localStorage');
       }
 
-      // Send login notification email (optional, don't block login if it fails)
-      console.log('📧 SignIn: Sending login notification email');
-      try {
-        await supabase.functions.invoke('send-login-notification', {
-          body: {
-            email: userEmail,
-            userName: userProfile?.first_name || 'User'
-          }
-        });
-        console.log('✅ SignIn: Login notification sent');
-      } catch (e) {
-        console.log('⚠️ SignIn: Login notification failed (non-critical):', e);
-      }
+      // Login notification removed - users login directly without email notification
+      console.log('📧 SignIn: Login notification skipped - direct login enabled');
 
       console.log('🎉 SignIn: Login process completed successfully!');
       toast.success("Login successful!");

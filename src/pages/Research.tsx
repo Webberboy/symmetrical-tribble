@@ -220,7 +220,12 @@ const Research = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header user={userData} />
+      <Header 
+        user={userData} 
+        showBackButton={true}
+        title="Stock Research"
+        onBackClick={() => navigate('/investment')}
+      />
       
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Header */}

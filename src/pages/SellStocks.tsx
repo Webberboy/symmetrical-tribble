@@ -216,21 +216,18 @@ const SellStocks = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header user={userData} />
+      <Header 
+        user={userData} 
+        showBackButton={true} 
+        title="Sell Stocks" 
+        onBackClick={() => navigate('/investment')} 
+      />
       
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={() => navigate('/investment')}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <ArrowLeft className="h-6 w-6 text-gray-700" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Sell Stocks</h1>
-            <p className="text-gray-600">Sell shares from your portfolio</p>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Sell Stocks</h1>
+          <p className="text-gray-600">Sell shares from your portfolio</p>
         </div>
 
         {!showConfirmation ? (

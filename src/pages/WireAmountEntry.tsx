@@ -170,7 +170,7 @@ const WireAmountEntry: React.FC = () => {
         user={userData}
         showBackButton={true} 
         title="Send Money"
-        onBackClick={() => navigate('/wire-account-selection')}
+        onBackClick={() => navigate('/transfer')}
       />
 
       {/* Content */}

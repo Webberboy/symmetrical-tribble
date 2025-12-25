@@ -116,7 +116,12 @@ const AddMoney = () => {
   if (isSuccess) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header user={user} />
+        <Header 
+        user={user} 
+        showBackButton={true} 
+        title="Add Money" 
+        onBackClick={() => navigate('/cards')} 
+      />
         <div className="max-w-md mx-auto px-4 py-8">
           <Card className="bg-white border-gray-200 text-center p-8">
             <div className="flex justify-center mb-4">
@@ -150,18 +155,14 @@ const AddMoney = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header user={user} />
+      <Header 
+        user={user} 
+        showBackButton={true} 
+        title="Add Money" 
+        onBackClick={() => navigate('/cards')} 
+      />
       
       <div className="max-w-md mx-auto px-4 py-6">
-        {/* Back Button */}
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/cards")}
-          className="mb-6 text-gray-600 hover:text-gray-900 p-0"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Cards
-        </Button>
 
         {/* Page Header */}
         <div className="mb-6">

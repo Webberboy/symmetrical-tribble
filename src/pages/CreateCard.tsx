@@ -258,7 +258,7 @@ const CreateCard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      <Header user={userData} />
+      <Header user={userData} showBackButton={true} onBackClick={() => navigate('/cards')} />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Header */}

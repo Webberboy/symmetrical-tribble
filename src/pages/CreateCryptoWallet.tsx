@@ -241,7 +241,12 @@ const CreateCryptoWallet = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header user={userData} />
+      <Header 
+        user={userData} 
+        showBackButton={true} 
+        title="Create Wallet" 
+        onBackClick={() => navigate('/crypto')} 
+      />
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         <button
           onClick={() => step === 1 ? navigate('/crypto') : setStep(step - 1)}

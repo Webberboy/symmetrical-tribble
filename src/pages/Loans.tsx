@@ -32,6 +32,9 @@ interface LoanApplication {
   purpose: string;
   income: string;
   employment: string;
+  termMonths: string;
+  termsAccepted: boolean;
+  privacyPolicyAccepted: boolean;
   // Personal loan specific
   creditScore?: string;
   monthlyExpenses?: string;
@@ -76,6 +79,9 @@ const Loans = () => {
     purpose: '',
     income: '',
     employment: '',
+    termMonths: '',
+    termsAccepted: false,
+    privacyPolicyAccepted: false,
     creditScore: '',
     monthlyExpenses: '',
     propertyValue: '',
@@ -282,6 +288,15 @@ const Loans = () => {
     if (!application.employment) {
       newErrors.employment = 'Please select your employment status';
     }
+    if (!application.termMonths || parseInt(application.termMonths) <= 0) {
+      newErrors.termMonths = 'Please enter a valid loan term in months';
+    }
+    if (!application.termsAccepted) {
+      newErrors.termsAccepted = 'You must accept the terms and conditions';
+    }
+    if (!application.privacyPolicyAccepted) {
+      newErrors.privacyPolicyAccepted = 'You must accept the privacy policy';
+    }
 
     // Loan type specific validation
     if (application.type === 'home') {
@@ -360,12 +375,17 @@ const Loans = () => {
       setErrors({});
 
       // Prepare application data for database
+      const annualIncome = parseFloat(application.income);
       const applicationData: any = {
         loan_type: application.type,
         requested_amount: parseFloat(application.amount),
+        requested_term_months: parseInt(application.termMonths),
         purpose: application.purpose,
-        annual_income: parseFloat(application.income),
-        employment_status: application.employment
+        annual_income: annualIncome,
+        monthly_income: annualIncome / 12, // Calculate monthly income from annual income
+        employment_status: application.employment,
+        terms_accepted: application.termsAccepted,
+        privacy_policy_accepted: application.privacyPolicyAccepted
       };
       
 
@@ -417,6 +437,9 @@ const Loans = () => {
         purpose: '',
         income: '',
         employment: '',
+        termMonths: '',
+        termsAccepted: false,
+        privacyPolicyAccepted: false,
         creditScore: '',
         monthlyExpenses: '',
         propertyValue: '',
@@ -724,6 +747,35 @@ const Loans = () => {
                 )}
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Loan Term (Months) <span className="text-red-500">*</span>
+                </label>
+                <select
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 ${
+                    errors.termMonths ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  value={application.termMonths}
+                  onChange={(e) => setApplication({ ...application, termMonths: e.target.value })}
+                >
+                  <option value="" className="bg-white text-gray-900">Select loan term</option>
+                  <option value="12" className="bg-white text-gray-900">12 months (1 year)</option>
+                  <option value="24" className="bg-white text-gray-900">24 months (2 years)</option>
+                  <option value="36" className="bg-white text-gray-900">36 months (3 years)</option>
+                  <option value="48" className="bg-white text-gray-900">48 months (4 years)</option>
+                  <option value="60" className="bg-white text-gray-900">60 months (5 years)</option>
+                  <option value="72" className="bg-white text-gray-900">72 months (6 years)</option>
+                  <option value="84" className="bg-white text-gray-900">84 months (7 years)</option>
+                  <option value="120" className="bg-white text-gray-900">120 months (10 years)</option>
+                  <option value="180" className="bg-white text-gray-900">180 months (15 years)</option>
+                  <option value="240" className="bg-white text-gray-900">240 months (20 years)</option>
+                  <option value="360" className="bg-white text-gray-900">360 months (30 years)</option>
+                </select>
+                {errors.termMonths && (
+                  <p className="text-red-500 text-sm mt-1">{errors.termMonths}</p>
+                )}
+              </div>
+
               {/* Personal Loan specific fields */}
               {application.type === 'personal' && (
                 <>
@@ -761,6 +813,45 @@ const Loans = () => {
                     </div>
                     {errors.monthlyExpenses && (
                       <p className="text-red-500 text-sm mt-1">{errors.monthlyExpenses}</p>
+                    )}
+                  </div>
+
+                  {/* Terms and Privacy Policy Checkboxes */}
+                  <div className="space-y-4">
+                    <div className="flex items-start">
+                      <input
+                        type="checkbox"
+                        id="termsAccepted"
+                        className={`mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded ${
+                          errors.termsAccepted ? 'border-red-500' : ''
+                        }`}
+                        checked={application.termsAccepted}
+                        onChange={(e) => setApplication({ ...application, termsAccepted: e.target.checked })}
+                      />
+                      <label htmlFor="termsAccepted" className="ml-3 text-sm text-gray-700">
+                        I accept the <a href="#" className="text-blue-600 hover:text-blue-800 underline">terms and conditions</a> <span className="text-red-500">*</span>
+                      </label>
+                    </div>
+                    {errors.termsAccepted && (
+                      <p className="text-red-500 text-sm">{errors.termsAccepted}</p>
+                    )}
+
+                    <div className="flex items-start">
+                      <input
+                        type="checkbox"
+                        id="privacyPolicyAccepted"
+                        className={`mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded ${
+                          errors.privacyPolicyAccepted ? 'border-red-500' : ''
+                        }`}
+                        checked={application.privacyPolicyAccepted}
+                        onChange={(e) => setApplication({ ...application, privacyPolicyAccepted: e.target.checked })}
+                      />
+                      <label htmlFor="privacyPolicyAccepted" className="ml-3 text-sm text-gray-700">
+                        I accept the <a href="#" className="text-blue-600 hover:text-blue-800 underline">privacy policy</a> <span className="text-red-500">*</span>
+                      </label>
+                    </div>
+                    {errors.privacyPolicyAccepted && (
+                      <p className="text-red-500 text-sm">{errors.privacyPolicyAccepted}</p>
                     )}
                   </div>
                 </>
@@ -1026,6 +1117,45 @@ const Loans = () => {
                     )}
                   </div>
                 </>
+              )}
+            </div>
+
+            {/* Terms and Privacy Policy Checkboxes */}
+            <div className="space-y-4 mt-6">
+              <div className="flex items-start">
+                <input
+                  type="checkbox"
+                  id="termsAccepted"
+                  className={`mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded ${
+                    errors.termsAccepted ? 'border-red-500' : ''
+                  }`}
+                  checked={application.termsAccepted}
+                  onChange={(e) => setApplication({ ...application, termsAccepted: e.target.checked })}
+                />
+                <label htmlFor="termsAccepted" className="ml-3 text-sm text-gray-700">
+                  I accept the <a href="#" className="text-blue-600 hover:text-blue-800 underline">terms and conditions</a> <span className="text-red-500">*</span>
+                </label>
+              </div>
+              {errors.termsAccepted && (
+                <p className="text-red-500 text-sm">{errors.termsAccepted}</p>
+              )}
+
+              <div className="flex items-start">
+                <input
+                  type="checkbox"
+                  id="privacyPolicyAccepted"
+                  className={`mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded ${
+                    errors.privacyPolicyAccepted ? 'border-red-500' : ''
+                  }`}
+                  checked={application.privacyPolicyAccepted}
+                  onChange={(e) => setApplication({ ...application, privacyPolicyAccepted: e.target.checked })}
+                />
+                <label htmlFor="privacyPolicyAccepted" className="ml-3 text-sm text-gray-700">
+                  I accept the <a href="#" className="text-blue-600 hover:text-blue-800 underline">privacy policy</a> <span className="text-red-500">*</span>
+                </label>
+              </div>
+              {errors.privacyPolicyAccepted && (
+                <p className="text-red-500 text-sm">{errors.privacyPolicyAccepted}</p>
               )}
             </div>
 

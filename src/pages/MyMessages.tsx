@@ -237,7 +237,12 @@ const MyMessages = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <Header user={userData} />
+      <Header 
+        user={userData} 
+        showBackButton={true}
+        title="My Messages"
+        onBackClick={() => navigate('/dashboard')}
+      />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">

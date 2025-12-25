@@ -230,16 +230,7 @@ const Contact = () => {
                   </div>
                 </div>
 
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Building2 className="h-6 w-6 text-red-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-slate-900 mb-2">Headquarters</h3>
-                    <p className="text-gray-600 mb-1">123 Financial District, Suite 1000</p>
-                    <p className="text-gray-600">New York, NY 10001</p>
-                  </div>
-                </div>
+
 
                 <div className="flex items-start space-x-4">
                   <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">

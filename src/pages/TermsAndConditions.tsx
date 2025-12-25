@@ -141,18 +141,7 @@ const TermsAndConditions = () => {
             </p>
           </section>
 
-          <section className="space-y-4">
-            <h2 className="text-xl font-semibold text-gray-900">11. Contact Information</h2>
-            <div className="text-gray-700 leading-relaxed space-y-2">
-              <p>If you have questions about these Terms and Conditions, please contact us:</p>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p><strong>{websiteName} Customer Service</strong></p>
-                <p>Email: legal@securebank.com</p>
-                <p>Phone: 1-800-SECUREBANK</p>
-                <p>Address: 123 Financial District, New York, NY 10001</p>
-              </div>
-            </div>
-          </section>
+
 
           <div className="border-t pt-6 mt-8">
             <p className="text-sm text-gray-500">

@@ -605,13 +605,13 @@ const AdminDashboard = () => {
                   </div>
                 </div>
 
-                {/* Account Information */}
+                {/* Account Information - Commented Out */}
+                {/*
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-white border-b border-gray-700 pb-2">
                     Account Information
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Account Number - Commented Out
                     <div>
                       <Label className="text-gray-300">Account Number</Label>
                       <Input 
@@ -620,8 +620,6 @@ const AdminDashboard = () => {
                         className="bg-gray-700 border-gray-600 text-white mt-1"
                       />
                     </div>
-                    */}
-                    {/* Account Created - Commented Out
                     <div>
                       <Label className="text-gray-300">Account Created</Label>
                       <Input 
@@ -630,9 +628,9 @@ const AdminDashboard = () => {
                         className="bg-gray-700 border-gray-600 text-white mt-1"
                       />
                     </div>
-                    */}
                   </div>
                 </div>
+                */}
 
                 {/* ID Document */}
                 {selectedUser.id_document_data && (

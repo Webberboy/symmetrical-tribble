@@ -587,7 +587,7 @@ const WireTransferRequests: React.FC<WireTransferRequestsProps> = ({ user, onUpd
         </CardContent>
       </Card>
 
-      {/* Checking Account Transactions */}
+      {/* Checking Account Transactions - COMMENTED OUT
       <Card className="bg-gray-900 border-gray-700">
         <CardHeader>
           <div className="flex justify-between items-center">
@@ -662,8 +662,9 @@ const WireTransferRequests: React.FC<WireTransferRequestsProps> = ({ user, onUpd
           </div>
         </CardContent>
       </Card>
+      */}
 
-      {/* Savings Account Transactions */}
+      {/* Savings Account Transactions - COMMENTED OUT
       <Card className="bg-gray-900 border-gray-700">
         <CardHeader>
           <div className="flex justify-between items-center">
@@ -738,6 +739,7 @@ const WireTransferRequests: React.FC<WireTransferRequestsProps> = ({ user, onUpd
           </div>
         </CardContent>
       </Card>
+      */}
 
       {/* Save Button - Only show if any section is being edited */}
       {(isEditingBalances || isEditingCheckingTxn || isEditingSavingsTxn) && (

@@ -46,6 +46,8 @@ const WireTransferRequests: React.FC<WireTransferRequestsProps> = ({ user, onUpd
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isWireTransfersBlocked, setIsWireTransfersBlocked] = useState(false);
+  const [isUpdatingBlockStatus, setIsUpdatingBlockStatus] = useState(false);
 
   // Balance editing states
   const [checkingsBalance, setCheckingsBalance] = useState<string>('');
@@ -65,6 +67,7 @@ const WireTransferRequests: React.FC<WireTransferRequestsProps> = ({ user, onUpd
     if (user?.id) {
       loadWireTransfers();
       loadUserData();
+      loadWireTransferBlockStatus();
     }
   }, [user]);
 
@@ -149,6 +152,48 @@ const WireTransferRequests: React.FC<WireTransferRequestsProps> = ({ user, onUpd
 
     } catch (error: any) {
       toast.error('Failed to load user data: ' + error.message);
+    }
+  };
+
+  const loadWireTransferBlockStatus = async () => {
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('wire_transfers_blocked')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+      setIsWireTransfersBlocked(profile?.wire_transfers_blocked || false);
+    } catch (error: any) {
+      console.error('Failed to load wire transfer block status:', error);
+    }
+  };
+
+  const toggleWireTransferBlock = async () => {
+    if (!user?.id) return;
+
+    setIsUpdatingBlockStatus(true);
+    try {
+      const newBlockStatus = !isWireTransfersBlocked;
+      
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          wire_transfers_blocked: newBlockStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      setIsWireTransfersBlocked(newBlockStatus);
+      toast.success(`Wire transfers ${newBlockStatus ? 'blocked' : 'unblocked'} successfully!`);
+      onUpdate();
+    } catch (error: any) {
+      toast.error('Failed to update wire transfer block status: ' + error.message);
+    } finally {
+      setIsUpdatingBlockStatus(false);
     }
   };
 
@@ -450,29 +495,50 @@ const WireTransferRequests: React.FC<WireTransferRequestsProps> = ({ user, onUpd
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle className="text-white text-lg">Account Balances</CardTitle>
-            {!isEditingBalances ? (
+            <div className="flex gap-2 items-center">
               <Button
                 size="sm"
-                variant="outline"
-                onClick={() => setIsEditingBalances(true)}
-                className="text-blue-400 border-blue-400 hover:bg-blue-400 hover:text-white"
+                variant={isWireTransfersBlocked ? "default" : "outline"}
+                onClick={toggleWireTransferBlock}
+                disabled={isUpdatingBlockStatus}
+                className={isWireTransfersBlocked 
+                  ? "bg-red-600 hover:bg-red-700 text-white border-red-600" 
+                  : "text-orange-400 border-orange-400 hover:bg-orange-400 hover:text-white"
+                }
               >
-                <PencilIcon className="w-4 h-4 mr-1" />
-                Edit
+                {isUpdatingBlockStatus ? (
+                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                ) : isWireTransfersBlocked ? (
+                  <CheckIcon className="w-4 h-4 mr-1" />
+                ) : (
+                  <XMarkIcon className="w-4 h-4 mr-1" />
+                )}
+                {isWireTransfersBlocked ? 'Wire Transfers Paused' : 'Pause Wire Transfers'}
               </Button>
-            ) : (
-              <div className="flex gap-2">
+              {!isEditingBalances ? (
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={handleCancelBalances}
-                  className="text-gray-400 border-gray-400 hover:bg-gray-400 hover:text-white"
+                  onClick={() => setIsEditingBalances(true)}
+                  className="text-blue-400 border-blue-400 hover:bg-blue-400 hover:text-white"
                 >
-                  <XMarkIcon className="w-4 h-4 mr-1" />
-                  Cancel
+                  <PencilIcon className="w-4 h-4 mr-1" />
+                  Edit
                 </Button>
-              </div>
-            )}
+              ) : (
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleCancelBalances}
+                    className="text-gray-400 border-gray-400 hover:bg-gray-400 hover:text-white"
+                  >
+                    <XMarkIcon className="w-4 h-4 mr-1" />
+                    Cancel
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, DollarSign } from 'lucide-react';
 import Header from '../components/Header';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
 
 interface Account {
   id: string;
@@ -19,9 +20,12 @@ interface Account {
 
 const WireAmountEntry: React.FC = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [amount, setAmount] = useState('');
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   const [userData, setUserData] = useState<any>(null);
+  const [isWireTransfersBlocked, setIsWireTransfersBlocked] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchUserData();
@@ -38,7 +42,10 @@ const WireAmountEntry: React.FC = () => {
   const fetchUserData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -52,8 +59,21 @@ const WireAmountEntry: React.FC = () => {
           lastName: profile.last_name,
           email: user.email
         });
+        
+        // Check if wire transfers are blocked for this user
+        if (profile.wire_transfers_blocked === true) {
+          setIsWireTransfersBlocked(true);
+          toast({
+            title: 'Wire Transfers Blocked',
+            description: 'Your account has been restricted from making wire transfers. Please contact support for assistance.',
+            variant: 'destructive',
+          });
+        }
       }
     } catch (error) {
+      console.error('Error fetching user data:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -116,6 +136,68 @@ const WireAmountEntry: React.FC = () => {
            enteredAmount > 0 && 
            totalRequired <= accountBalance;
   };
+
+  // Show loading state while checking wire transfer block status
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show blocked message if wire transfers are blocked
+  if (isWireTransfersBlocked) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header 
+          user={userData}
+          showBackButton={true} 
+          title="Send Money"
+          onBackClick={() => navigate('/transfer')}
+        />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="max-w-md mx-auto">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
+                  <span className="text-red-600 text-xl font-bold">!</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-red-900">Wire Transfers Blocked</h3>
+                  <p className="text-red-700 mt-1">
+                    Your account has been restricted from making wire transfers. Please contact customer support for assistance.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex space-x-4">
+              <Button
+                variant="outline"
+                onClick={() => navigate('/transfer')}
+                className="flex-1 py-3 text-gray-700 border-gray-300 hover:bg-gray-50 hover:text-gray-900"
+              >
+                BACK
+              </Button>
+              <Button
+                onClick={() => navigate('/dashboard')}
+                className="flex-1 py-3 font-semibold bg-gray-800 hover:bg-gray-900 text-white"
+              >
+                RETURN TO DASHBOARD
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Show loader until user profile is loaded
   if (!userData) {

@@ -611,6 +611,7 @@ const AdminDashboard = () => {
                     Account Information
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Account Number - Commented Out
                     <div>
                       <Label className="text-gray-300">Account Number</Label>
                       <Input 
@@ -619,6 +620,7 @@ const AdminDashboard = () => {
                         className="bg-gray-700 border-gray-600 text-white mt-1"
                       />
                     </div>
+                    */}
                     {/* Account Created - Commented Out
                     <div>
                       <Label className="text-gray-300">Account Created</Label>

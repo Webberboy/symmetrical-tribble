@@ -33,8 +33,7 @@ const WireTransferManagement: React.FC<WireTransferManagementProps> = ({ user, o
   const [wireTransferBlockReason, setWireTransferBlockReason] = useState<string>('');
   
   // Modal state for block reasons
-  const [showBlockReasonModal, setShowBlockReasonModal] = useState(false);
-  const [customBlockReason, setCustomBlockReason] = useState('');
+
   
   // Edit states for each section
   const [isEditingBalances, setIsEditingBalances] = useState(false);
@@ -49,16 +48,8 @@ const WireTransferManagement: React.FC<WireTransferManagementProps> = ({ user, o
   // Store original values for cancel functionality
   const [originalValues, setOriginalValues] = useState<any>({});
 
-  // Predefined block reason templates
-  const blockReasonTemplates = [
-    "Your account is currently under review for security purposes. Please contact support.",
-    "Wire transfers have been temporarily suspended due to unusual activity. Please contact support.",
-    "Your account verification is incomplete. Please contact support.",
-    "Wire transfer privileges have been restricted pending documentation. Please contact support.",
-    "Your account has exceeded the monthly wire transfer limit. Please contact support.",
-    "Wire transfers are temporarily disabled for maintenance. Please contact support.",
-    "Additional security verification is required for wire transfers. Please contact support."
-  ];
+  // Default block reason message (no templates needed)
+  const DEFAULT_BLOCK_REASON = "Wire Transfers Blocked. Your account has been restricted from making wire transfers. Please contact customer support for assistance.";
 
   // Load data from both accounts and profiles tables
   useEffect(() => {
@@ -192,8 +183,9 @@ const WireTransferManagement: React.FC<WireTransferManagementProps> = ({ user, o
 
   const handleWireTransferToggle = (enabled: boolean) => {
     if (!enabled) {
-      // When disabling wire transfers, show the modal
-      setShowBlockReasonModal(true);
+      // When disabling wire transfers, set default reason without showing modal
+      setWireTransferEnabled(false);
+      setWireTransferBlockReason(DEFAULT_BLOCK_REASON);
     } else {
       // When enabling, clear the reason and enable immediately
       setWireTransferEnabled(true);
@@ -201,29 +193,7 @@ const WireTransferManagement: React.FC<WireTransferManagementProps> = ({ user, o
     }
   };
 
-  const handleConfirmBlock = () => {
-    if (wireTransferBlockReason.trim()) {
-      setWireTransferEnabled(false);
-      setShowBlockReasonModal(false);
-      setCustomBlockReason('');
-    }
-  };
 
-  const handleCancelBlock = () => {
-    setShowBlockReasonModal(false);
-    setCustomBlockReason('');
-    // Revert the switch back to enabled state
-    setWireTransferEnabled(true);
-  };
-
-  const handleReasonTemplateSelect = (template: string) => {
-    setWireTransferBlockReason(template);
-  };
-
-  const handleCustomReasonChange = (value: string) => {
-    setCustomBlockReason(value);
-    setWireTransferBlockReason(value);
-  };
 
   const formatCurrency = (value: string) => {
     const num = parseFloat(value) || 0;
@@ -633,22 +603,7 @@ const WireTransferManagement: React.FC<WireTransferManagementProps> = ({ user, o
                 />
               </div>
 
-              {!wireTransferEnabled && (
-                <div className="space-y-3 p-4 bg-red-900/20 border border-red-800 rounded-lg">
-                  <div className="space-y-2">
-                    <Label className="text-red-400 text-base">Block Reason (Required)</Label>
-                    <Textarea
-                      value={wireTransferBlockReason}
-                      onChange={(e) => setWireTransferBlockReason(e.target.value)}
-                      className="bg-gray-700 border-gray-600 text-white min-h-[100px]"
-                      placeholder="Enter the reason why wire transfers are disabled for this user. This message will be shown to the user when they try to make a transfer."
-                    />
-                    <p className="text-xs text-gray-400 italic">
-                      This message will be displayed to the user when they attempt a wire transfer.
-                    </p>
-                  </div>
-                </div>
-              )}
+
             </>
           ) : (
             <div className="p-4 bg-gray-800 rounded-lg">
@@ -679,7 +634,7 @@ const WireTransferManagement: React.FC<WireTransferManagementProps> = ({ user, o
         <div className="flex justify-end gap-3 pt-4 border-t border-gray-700">
           <Button
             onClick={handleSaveChanges}
-            disabled={isSaving || (!wireTransferEnabled && !wireTransferBlockReason.trim() && isEditingWireTransfer)}
+            disabled={isSaving}
             className="bg-blue-600 hover:bg-blue-700 text-white px-8"
           >
             <CheckIcon className="w-4 h-4 mr-2" />
@@ -688,11 +643,7 @@ const WireTransferManagement: React.FC<WireTransferManagementProps> = ({ user, o
         </div>
       )}
 
-      {isEditingWireTransfer && !wireTransferEnabled && !wireTransferBlockReason.trim() && (
-        <p className="text-sm text-yellow-500 text-center">
-          ⚠️ Please provide a reason for blocking wire transfers before saving
-        </p>
-      )}
+
 
       {/* Info Message */}
       <div className="bg-blue-900/20 border border-blue-800 rounded-lg p-4">
@@ -701,60 +652,7 @@ const WireTransferManagement: React.FC<WireTransferManagementProps> = ({ user, o
         </p>
       </div>
 
-      {/* Block Reason Modal */}
-      {showBlockReasonModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 border border-gray-600 rounded-lg p-6 w-full max-w-2xl mx-4">
-            <h3 className="text-white text-lg font-semibold mb-4">Block Wire Transfers</h3>
-            <p className="text-gray-300 text-sm mb-4">
-              Please select a reason for blocking wire transfers for this user:
-            </p>
-            
-            <div className="space-y-3 mb-4 max-h-60 overflow-y-auto">
-              {blockReasonTemplates.map((template, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleReasonTemplateSelect(template)}
-                  className={`w-full text-left p-3 rounded border transition-colors ${
-                    wireTransferBlockReason === template
-                      ? 'bg-red-900/30 border-red-600 text-white'
-                      : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
-                  }`}
-                >
-                  <div className="text-sm whitespace-normal break-words">{template}</div>
-                </button>
-              ))}
-            </div>
 
-            <div className="space-y-2 mb-4">
-              <Label className="text-gray-300 text-sm">Or enter a custom reason:</Label>
-              <Textarea
-                value={customBlockReason}
-                onChange={(e) => handleCustomReasonChange(e.target.value)}
-                className="bg-gray-700 border-gray-600 text-white min-h-[80px] text-sm"
-                placeholder="Enter custom reason..."
-              />
-            </div>
-
-            <div className="flex gap-3 justify-end">
-              <Button
-                onClick={handleCancelBlock}
-                variant="outline"
-                className="text-gray-400 border-gray-600 hover:bg-gray-700"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleConfirmBlock}
-                disabled={!wireTransferBlockReason.trim()}
-                className="bg-red-600 hover:bg-red-700 text-white"
-              >
-                Block Transfers
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

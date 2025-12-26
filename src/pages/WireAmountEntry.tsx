@@ -26,10 +26,11 @@ const WireAmountEntry: React.FC = () => {
   const [userData, setUserData] = useState<any>(null);
   const [isWireTransfersBlocked, setIsWireTransfersBlocked] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [checkingBalance, setCheckingBalance] = useState<number>(0);
 
   useEffect(() => {
     fetchUserData();
-    // Get selected account from localStorage
+    // Get selected account from localStorage (for account type/name only)
     const accountData = localStorage.getItem('wireTransferAccount');
     if (accountData) {
       const parsedAccount = JSON.parse(accountData);
@@ -47,6 +48,23 @@ const WireAmountEntry: React.FC = () => {
       if (!user) {
         setIsLoading(false);
         return;
+      }
+
+      // Fetch checking account balance from accounts table
+      const { data: checkingAccount, error: accountError } = await supabase
+        .from('accounts')
+        .select('checking_balance, balance')
+        .eq('user_id', user.id)
+        .eq('account_type', 'checking')
+        .single();
+
+      if (accountError) {
+        console.error('Error fetching checking account balance:', accountError);
+      } else if (checkingAccount) {
+        // Use checking_balance if available, otherwise fall back to balance
+        const realTimeBalance = checkingAccount.checking_balance || checkingAccount.balance || 0;
+        setCheckingBalance(realTimeBalance);
+        console.log('WireAmountEntry - Fetched real-time checking balance:', realTimeBalance);
       }
 
       const { data: profile } = await supabase
@@ -96,7 +114,7 @@ const WireAmountEntry: React.FC = () => {
 
   const handleNext = async () => {
     const enteredAmount = parseFloat(amount);
-    const accountBalance = selectedAccount?.balance || 0;
+    const accountBalance = checkingBalance;
     
     if (!amount || enteredAmount <= 0) {
       return;
@@ -130,7 +148,7 @@ const WireAmountEntry: React.FC = () => {
 
   const isValidAmount = () => {
     const enteredAmount = parseFloat(amount);
-    const accountBalance = selectedAccount?.balance || 0;
+    const accountBalance = checkingBalance;
     const wireTransferFee = 5.00;
     const totalRequired = enteredAmount + wireTransferFee;
     
@@ -230,7 +248,7 @@ const WireAmountEntry: React.FC = () => {
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Enter amount</h2>
             {selectedAccount && (
               <p className="text-sm text-gray-600">
-                From {selectedAccount.name} • Available {formatBalance(selectedAccount.balance || 0)}
+                From {selectedAccount.name} • Available {formatBalance(checkingBalance)}
               </p>
             )}
           </div>
@@ -302,7 +320,7 @@ const WireAmountEntry: React.FC = () => {
             </p>
             <p className="text-xs text-red-600">
               Amount + $5 fee = ${(parseFloat(amount) + 5).toFixed(2)}<br />
-              Available balance: {selectedAccount ? formatBalance(selectedAccount.balance || 0) : '$0.00'}
+              Available balance: {formatBalance(checkingBalance)}
             </p>
           </div>
         )}

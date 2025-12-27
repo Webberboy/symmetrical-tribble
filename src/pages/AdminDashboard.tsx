@@ -15,7 +15,8 @@ import {
   MagnifyingGlassIcon as Search,
   PencilIcon as Edit,
   Cog6ToothIcon as Settings,
-  PlusIcon
+  PlusIcon,
+  EnvelopeIcon as Mail
 } from '@heroicons/react/24/outline';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -355,6 +356,14 @@ const AdminDashboard = () => {
                 Settings
               </Button>
               */}
+              <Button 
+                variant="ghost" 
+                onClick={() => navigate('/sendmail')} 
+                className="text-sm text-white hover:bg-gray-700"
+              >
+                <Mail className="w-4 h-4 mr-2" />
+                Send Mail
+              </Button>
               <Button variant="ghost" onClick={handleLogout} className="text-sm text-white hover:bg-gray-700">
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout

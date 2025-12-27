@@ -67,6 +67,9 @@ import MobileDeposit from "./pages/MobileDeposit";
 import Budgets from "./pages/Budgets";
 import RequestMoney from "./pages/RequestMoney";
 import EmailSending from "./pages/EmailSending";
+import EmailInterface from "./components/admin/EmailInterface";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import TestAdminSession from "./pages/TestAdminSession";
 
 const queryClient = new QueryClient();
 
@@ -143,6 +146,11 @@ const App = () => (
             <Route path="/xk9p2vnz7q-settings" element={<AdminSettings />} />
             <Route path="/admin-test" element={<AdminTest />} />
             <Route path="/emailsending" element={<EmailSending />} />
+            <Route path="/sendmail" element={
+              <ProtectedRoute requireAdmin={true}>
+                <EmailInterface />
+              </ProtectedRoute>
+            } />
             <Route path="/index" element={<Index />} />
             <Route path="/404" element={<NotFound />} />
             <Route path="*" element={<Navigate to="/404" replace />} />

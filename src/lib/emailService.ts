@@ -37,8 +37,8 @@ async function getWebsiteSettings() {
  */
 const EMAIL_CONFIG = {
   // Using verified domain for professional branded emails
-  from: 'noreply@unitycapital.com', // Will be combined with website name dynamically
-    replyTo: 'support@unitycapital.com',
+  from: 'noreply@unitycaplbk.org', // Will be combined with website name dynamically
+    replyTo: 'support@unitycaplbk.org',
 };
 
 /**

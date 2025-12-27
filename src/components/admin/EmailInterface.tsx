@@ -194,18 +194,26 @@ const EmailInterface = () => {
         return;
       }
       
-      // Use admin session token if no regular auth token exists
-      const authToken = token || adminSession;
+      // Use the actual JWT token if available, otherwise use Supabase service role key for admin access
+      let authToken = token;
+      if (!authToken && adminSession) {
+        // Use Supabase service role key for admin session authentication (has higher privileges)
+        authToken = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+        console.log('9b. Using Supabase service role key for admin authentication');
+      }
 
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const edgeFunctionUrl = `${supabaseUrl}/functions/v1/sendmail`;
+      
       console.log('10. Calling edge function...');
-      console.log('11. Edge function URL: /functions/v1/sendmail');
+      console.log('11. Edge function URL:', edgeFunctionUrl);
       console.log('12. Request headers:', {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${authToken ? authToken.substring(0, 20) : 'NONE'}...` // Only log first 20 chars of token
       });
 
       // Call the Supabase edge function
-      const response = await fetch('/functions/v1/sendmail', {
+      const response = await fetch(edgeFunctionUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
